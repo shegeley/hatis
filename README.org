@@ -1,0 +1,21 @@
+This is a very early-stage project (alpha-version) + a set of experiments of building HAckable Text Input System (HATIS)
+
+* Description
+Text-editors are dead as a concept. What's needed is a text-input system. Mobile phones got it right more than 10 years ago. Both Android and iOS can catch the text-input context: «ah here we can input text, let's show the virtual keyboard!».
+
+This project is inspired by very same idea: catch the text-input context globally (across all system, not just one process) and do what's needed: change the UI, keybindings, etc. Emacs got some part of text-input right with modes. But modes should be global, on Window Manager level (or even deeper).
+
+In GUI it's possible to "catch input context" using Wayland::TextInputMethod.
+
+It should also be possible on pure-tty with gettext or something.
+
+The system should be very hackable. That's why it's written in lisp (Guile Scheme to interact with Guix System flawlessly).
+* Notes
+** On using ~guile-wayland~ listeners
+ALL EVENTS MUST HAVE HANDLERS. Or will result eror «listener function for opcode 3 of ... is NULL».
+** [[httphttps://github.com/swaywm/wlroots/blob/master/examples/input-method.c][input-method usage example from swaywm]]
+* TODOS
+** TODO Draft a simple GTK-based UI to show on text-input
+The UI should be described as lisp data structure (xml?) and it should be possible to "resolve" it structure with different resolvers: gtk, qt, etc.
+** TODO Parse keyboard-events ~uint~ with ~guile-libxkbcommon~
+** TODO Use ~guile-ares~ intead of ~geiser~
