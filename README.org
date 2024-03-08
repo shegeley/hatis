@@ -18,4 +18,5 @@ ALL EVENTS MUST HAVE HANDLERS. Or will result eror «listener function for opcod
 ** TODO Draft a simple GTK-based UI to show on text-input
 The UI should be described as lisp data structure (xml?) and it should be possible to "resolve" it structure with different resolvers: gtk, qt, etc.
 ** TODO Parse keyboard-events ~uint~ with ~guile-libxkbcommon~
-** TODO Use ~guile-ares~ intead of ~geiser~
+** DONE Use ~guile-ares~ intead of ~geiser~
+See repl.sh
