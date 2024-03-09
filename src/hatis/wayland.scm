@@ -6,10 +6,20 @@
   #:use-module (wayland client protocol wayland)
   #:use-module (wayland client protocol xdg-shell)
 
-  #:use-module (oop goops)
-  #:use-module (ice-9 format))
+  #:use-module (fibers)
 
-;; (gc-disable) TODO: remove?
+  #:use-module (fibers channels)
+
+  #:use-module (ice-9 match)
+  #:use-module (ice-9 format)
+
+  #:use-module (oop goops))
+
+(define (current-desktop)
+  (getenv "XDG_CURRENT_DESKTOP"))
+
+(define chan
+  (make-channel))
 
 (define compositor
   (make-parameter #f))
@@ -30,10 +40,19 @@
   (make-parameter #f))
 
 (define input-surface
+  ;; https://wayland.app/protocols/input-method-unstable-v2#zwp_input_popup_surface_v2
+  (make-parameter #f))
+
+(define xdg-input-surface
+  ;; https://wayland.app/protocols/xdg-shell#xdg_surface
   (make-parameter #f))
 
 (define keyboard
   (make-parameter #f))
+
+(define xdg-wm-base
+  ;; The xdg_wm_base interface is exposed as a global object enabling clients to turn their wl_surfaces into windows in a desktop environment. It defines the basic functionality needed for clients and the compositor to create windows that can be dragged, resized, maximized, etc, as well as creating transient windows such as popup menus.
+(make-parameter #f))
 
 (define registry-listener
   (make <wl-registry-listener>
@@ -43,14 +62,18 @@
               interface version name)
       (cond
        ((string=? "wl_compositor" interface)
-        (compositor (wrap-wl-compositor (wl-registry-bind registry name                      %wl-compositor-interface 3)))
-        (input-surface (wl-compositor-create-surface (compositor))))
+        (compositor
+         (wrap-wl-compositor (wl-registry-bind registry name %wl-compositor-interface 3))))
        ((string=? "wl_seat" interface)
         (seat (wrap-wl-seat (wl-registry-bind registry name %wl-seat-interface 3))))
        ((string=? "zwp_input_method_manager_v2" interface)
         (input-method-manager
          (wrap-zwp-input-method-manager-v2
-          (wl-registry-bind registry name %zwp-input-method-manager-v2-interface 1))))))
+          (wl-registry-bind registry name %zwp-input-method-manager-v2-interface 1))))
+       ((string=? "xdg_wm_base" interface)
+        (xdg-wm-base
+         (wrap-xdg-wm-base
+          (wl-registry-bind registry name %xdg-wm-base-interface 2))))))
     #:global-remove
     (lambda (data registry name)
       (pk 'remove data registry name))))
@@ -96,16 +119,26 @@
     #:activate
     (lambda (_ im)
       (format #t "activate! im: ~a ~%" im)
+      ;; NOTE: need to grab keyboard + input surface
+
+      ;; Catch surface
+      (input-surface
+       (wl-compositor-create-surface (compositor)))
+      (input-surface
+       ;; popup-input-surface won't cast to xdg-surface
+       ;; (xdg-input-surface (xdg-wm-base-get-xdg-surface (xdg-wm-base) (input-surface)))
+       ;; ERROR: «not a <wl-surface> or #f #<<zwp-input-popup-surface-v2> 7efd12918c80>»
+       (zwp-input-method-v2-get-input-popup-surface im (input-surface)))
+
+      ;; Grab keyboard
       (keyboard (zwp-input-method-v2-grab-keyboard im))
-      (zwp-input-method-keyboard-grab-v2-add-listener (keyboard) keyboard-grab-listener)
-      ;; (zwp-input-method-v2-get-input-popup-surface
-      ;;  (input-method)
-      ;;  (input-surface))
-      )
+      (zwp-input-method-keyboard-grab-v2-add-listener (keyboard) keyboard-grab-listener))
     #:deactivate
     (lambda args
       (format #t "leave! args: ~a ~%" args)
-      (zwp-input-method-keyboard-grab-v2-release (keyboard)))))
+      ;; Release keyboard NEEDED?
+      ;; (zwp-input-method-keyboard-grab-v2-release (keyboard))
+      )))
 
 (define (main)
   (display (wl-display-connect))
@@ -127,3 +160,6 @@
   (format #t "Input-method: ~a ~%" (input-method))
   (zwp-input-method-v2-add-listener (input-method) input-method-listener)
   (while (wl-display-roundtrip (display))))
+
+;; Evaluate (main) only AFTER evaluating everything before it. Or ~arei~ buffer might loose the (current-output-(port?)) and won't show any print commands
+(main)
