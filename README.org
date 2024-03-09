@@ -23,5 +23,14 @@ The UI should be described as lisp data structure (xml?) and it should be possib
 I don't understand how helpfull is it not, but I bet it will be needed later to display proper custom UIs
 ** TODO Get ~app_id~ + ~pid~ & other meta from text-input context
 See [[https://github.com/swaywm/sway/blob/master/swaymsg/main.c][swaymsg]].
+** TODO Also try [[https://wayland.app/protocols/xwayland-keyboard-grab-unstable-v1#zwp_xwayland_keyboard_grab_manager_v1:request:grab_keyboard][XWayland keyboard grabbing]] [low priority]
+Alas it seems broken at it's very core:
+#+begin_quote
+The protocol:
+- does not guarantee that the grab itself is applied for a surface, the grab request may be silently ignored by the compositor,
+- does not guarantee that any events are sent to this client even if the grab is applied to a surface,
+- does not guarantee that events sent to this client are exhaustive, a compositor may filter some events for its own consumption,
+- does not guarantee that events sent to this client are continuous, a compositor may change and reroute keyboard events while the grab is nominally active.
+#+end_quote
 ** DONE Use ~guile-ares~ intead of ~geiser~
 See repl.sh
