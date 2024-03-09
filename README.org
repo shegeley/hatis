@@ -20,6 +20,8 @@ The system should be very hackable. That's why it's written in lisp (Guile Schem
 * Notes
 ** On using ~guile-wayland~ listeners
 ALL EVENTS MUST HAVE HANDLERS. Or will result eror «listener function for opcode 3 of ... is NULL».
+
+It would be nice to create some form of wrapper that appends ~(lambda args #t)~ for all unhandled events [low priority]. FFI needed.
 ** [[httphttps://github.com/swaywm/wlroots/blob/master/examples/input-method.c][input-method usage example from swaywm]]
 * TODOS
 ** TODO Draft a simple GTK-based UI to show on text-input
@@ -29,7 +31,9 @@ The UI should be described as lisp data structure (xml?) and it should be possib
 ** TODO Catch text-input context's surface (~get_input_popup_surface~)
 I don't understand how helpfull is it not, but I bet it will be needed later to display proper custom UIs
 ** TODO Get ~app_id~ + ~pid~ & other meta from text-input context
-See [[https://github.com/swaywm/sway/blob/master/swaymsg/main.c][swaymsg]].
+There is no "unified" way of doing this in all Wayland implementationsthis because it's not Wayland's responsibility in general.
+
+- sway: [[https://github.com/swaywm/sway/blob/master/swaymsg/main.c][swaymsg]]
 ** TODO Add start/pause/stop/restart option to the (main) loop
 Currently when the repl is launched and the (main) in running it's not possible to eval any other expression. Only to interrupt the main loop and loose all the set parameters and context.
 
