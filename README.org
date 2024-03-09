@@ -10,6 +10,13 @@ In GUI it's possible to "catch input context" using Wayland::TextInputMethod.
 It should also be possible on pure-tty with gettext or something.
 
 The system should be very hackable. That's why it's written in lisp (Guile Scheme to interact with Guix System flawlessly).
+* Dev Setup(s)
+- Emacs + [[https://git.sr.ht/~abcdw/guile-ares-rs][Ares]]/[[xhttps://git.sr.ht/~abcdw/emacs-arei][Arei]]
+- Guix System
+- Gnome on Wayland as primary WM
+- Sway launched in command line ("wm in a window"); from there I launch repl with ~bash repl.sh~ and I interact with it on Gnome with ~arei~
+
+  You can also launch it on native sway but as I'm still experimenting with keyboard grabbing and "dangerous" stuff like this you might end up loosing the control completely and having to restart the machine.
 * Notes
 ** On using ~guile-wayland~ listeners
 ALL EVENTS MUST HAVE HANDLERS. Or will result eror «listener function for opcode 3 of ... is NULL».
