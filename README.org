@@ -17,6 +17,11 @@ ALL EVENTS MUST HAVE HANDLERS. Or will result eror «listener function for opcod
 * TODOS
 ** TODO Draft a simple GTK-based UI to show on text-input
 The UI should be described as lisp data structure (xml?) and it should be possible to "resolve" it structure with different resolvers: gtk, qt, etc.
+** TODO Stream keyboard events to fibers channel
 ** TODO Parse keyboard-events ~uint~ with ~guile-libxkbcommon~
+** TODO Catch text-input context's surface (~get_input_popup_surface~)
+I don't understand how helpfull is it not, but I bet it will be needed later to display proper custom UIs
+** TODO Get ~app_id~ + ~pid~ & other meta from text-input context
+See [[https://github.com/swaywm/sway/blob/master/swaymsg/main.c][swaymsg]].
 ** DONE Use ~guile-ares~ intead of ~geiser~
 See repl.sh
