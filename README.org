@@ -21,7 +21,7 @@ The system should be very hackable. That's why it's written in lisp (Guile Schem
 ** On using ~guile-wayland~ listeners
 ALL EVENTS MUST HAVE HANDLERS. Or will result eror «listener function for opcode 3 of ... is NULL».
 
-It would be nice to create some form of wrapper that appends ~(lambda args #t)~ for all unhandled events [low priority]. FFI needed.
+It would be nice to create some form of wrapper that appends ~(lambda args #t)~ for all unhandled events [low priority] in the ~guile-wayland~ project.
 ** ~input-popup-surface~ vs ~surface~ vs ~xdg-surface~
 Input-popup-surface is another breed. Won't cast to any other.
 ** [[httphttps://github.com/swaywm/wlroots/blob/master/examples/input-method.c][input-method usage example from swaywm]]
