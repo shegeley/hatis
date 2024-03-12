@@ -5,7 +5,7 @@ Text-editors are dead as a concept. What's needed is a text-input system. Mobile
 
 This project is inspired by very same idea: catch the text-input context globally (across all system, not just one process) and do what's needed: change the UI, keybindings, etc. Emacs got some part of text-input right with modes. But modes should be global, on Window Manager level (or even deeper).
 
-In GUI it's possible to "catch input context" using Wayland::TextInputMethod.
+In GUI it's possible to "catch input context" using [[https://wayland.app/protocols/input-method-unstable-v2][Wayland::InputMethod]]
 
 It should also be possible on pure-tty with gettext or something.
 
