@@ -78,6 +78,17 @@
     (lambda (data registry name)
       (pk 'remove data registry name))))
 
+(define (handle-key-press args)
+  "let if be as is for now. but I guess enhanced interception logic needed.
+   like:
+    (define (wrap-handle-press-event pointer grab serial timestamp key state)
+        (alist->hash-table `((serial . ,serial)
+                            (timestamp . ,timestamp)
+                            (key . ,key)
+                            (state . ,state))))"
+  (format #t "key! args: ~a ~%" args)
+  (put-message chan (list #:key args)))
+
 (define keyboard-grab-listener
   (make <zwp-input-method-keyboard-grab-v2-listener>
     #:release
@@ -92,9 +103,7 @@
     #:repeat-info
     (lambda args
       (format #t "repeat-info! args: ~a ~%" args))
-    #:key
-    (lambda args
-      (format #t "key! args: ~a ~%" args))))
+    #:key handle-key-press))
 
 (define input-method-listener
   (make <zwp-input-method-v2-listener>
@@ -162,4 +171,4 @@
   (while (wl-display-roundtrip (display))))
 
 ;; Evaluate (main) only AFTER evaluating everything before it. Or ~arei~ buffer might loose the (current-output-(port?)) and won't show any print commands
-(main)
+;; (main)

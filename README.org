@@ -53,6 +53,7 @@ The protocol:
 - does not guarantee that events sent to this client are exhaustive, a compositor may filter some events for its own consumption,
 - does not guarantee that events sent to this client are continuous, a compositor may change and reroute keyboard events while the grab is nominally active.
 #+end_quote
+** DONE Stream keyboard events to fibers channel
 ** DONE Catch text-input context's surface (~get_input_popup_surface~)
 I don't understand how helpfull is it not, but I bet it will be needed later to display proper custom UIs
 ** DONE Use ~guile-ares~ intead of ~geiser~
