@@ -6,9 +6,12 @@
   #:use-module (wayland client protocol wayland)
   #:use-module (wayland client protocol xdg-shell)
 
-  #:use-module (fibers)
+  #:use-module (hatis wayland keyboard)
 
+  #:use-module (fibers)
   #:use-module (fibers channels)
+
+  #:use-module (srfi srfi-1)
 
   #:use-module (ice-9 match)
   #:use-module (ice-9 format)
@@ -78,7 +81,7 @@
     (lambda (data registry name)
       (pk 'remove data registry name))))
 
-(define (handle-key-press args)
+(define (handle-key-press . args)
   "let if be as is for now. but I guess enhanced interception logic needed.
    like:
     (define (wrap-handle-press-event pointer grab serial timestamp key state)
@@ -96,7 +99,8 @@
       (format #t "release! args: ~a ~%" args))
     #:keymap
     (lambda args
-      (format #t "keymap! args: ~a ~%" args))
+      (format #t "keymap! args: ~a ~%" args)
+      (apply get-keymap (drop args 2)))
     #:modifiers
     (lambda args
       (format #t "modifiers! args: ~a ~%" args))
