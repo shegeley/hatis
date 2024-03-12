@@ -36,6 +36,10 @@ How do I test it from non-personal PC? Simulate wayland when being ssh-access on
 There is no "unified" way of doing this in all Wayland implementationsthis because it's not Wayland's responsibility in general.
 
 - sway: [[https://github.com/swaywm/sway/blob/master/swaymsg/main.c][swaymsg]]
+** TODO Get keyboard keymap ([[https://wayland.app/protocols/wayland#wl_keyboard:event:keymap][~wl_keyboard::keymap~]])
+Get keymap from file-descriptor.
+
+Interaction with C and low-level memory management needed (~mmap~) calls, as in one of ~guile-wayland~ examples.
 ** TODO Add start/pause/stop/restart option to the (main) loop
 Currently when the repl is launched and the (main) in running it's not possible to eval any other expression. Only to interrupt the main loop and loose all the set parameters and context.
 
