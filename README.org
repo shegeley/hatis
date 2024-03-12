@@ -27,11 +27,11 @@ Input-popup-surface is another breed. Won't cast to any other.
 ** [[httphttps://github.com/swaywm/wlroots/blob/master/examples/input-method.c][input-method usage example from swaywm]]
 * TODOS
 ** TODO Draft a simple GTK-based UI to show on text-input
-The UI should be described as lisp data structure (xml?) and it should be possible to "resolve" it structure with different resolvers: gtk, qt, etc.
-** TODO Stream keyboard events to fibers channel
-** TODO Parse keyboard-events ~uint~ with ~guile-libxkbcommon~
-** TODO Catch text-input context's surface (~get_input_popup_surface~)
-I don't understand how helpfull is it not, but I bet it will be needed later to display proper custom UIs
+Best case scenario: UI should be described as lisp data structure (xml?) and it should be possible to "resolve" it structure with different custom "resolvers" for gtk, qt, etc.
+** TODO Draft a simple GTK-based UI to show interactive "input-repl" (events in real-time)
+** TODO Figure out testing
+How do I test it from non-personal PC? Simulate wayland when being ssh-access only. Will be needed for automations like github actions or something.
+** TODO Parse keyboard-events ~uint~ with ~guile-libxkbcommon~ (or ~guile-libinput~?) :keyboard:input:
 ** TODO Get ~app_id~ + ~pid~ & other meta from text-input context
 There is no "unified" way of doing this in all Wayland implementationsthis because it's not Wayland's responsibility in general.
 
@@ -53,5 +53,10 @@ The protocol:
 - does not guarantee that events sent to this client are exhaustive, a compositor may filter some events for its own consumption,
 - does not guarantee that events sent to this client are continuous, a compositor may change and reroute keyboard events while the grab is nominally active.
 #+end_quote
+** DONE Catch text-input context's surface (~get_input_popup_surface~)
+I don't understand how helpfull is it not, but I bet it will be needed later to display proper custom UIs
 ** DONE Use ~guile-ares~ intead of ~geiser~
 See repl.sh
+* Questions
+** Do I need to create sepate virtual keyboard when grabbing the input?
+For what? Kinda hotswap?
