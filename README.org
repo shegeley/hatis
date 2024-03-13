@@ -10,6 +10,62 @@ In GUI it's possible to "catch input context" using [[https://wayland.app/protoc
 It should also be possible on pure-tty with gettext or something.
 
 The system should be very hackable. That's why it's written in lisp (Guile Scheme to interact with Guix System flawlessly).
+* Core idea
+Core idea for the project of this repository comes from the naming: "Hackable Text Input System".
+
+Hackable := easily extensible and possible to experiment with is; that's why hackable language with hackable ecosystem and REPL is chosen
+Text Input System := system that deals with Text input (multimedia comes afterwards, maybe in another module)
+
+So, at the first sight it's just should be able to "catch the current context" of text input [on GUI (Wayland via ~zwp_input_method_v2~)]
+
+context := text input "event". "context" example:
+- it's started and "called by" wl_server/wl_client [not sure yet who calls it] ~wl-server/wl-client~
+- on wl_seat ~wl-seat~
+- with wl_popup_input_surface ~wpis1~
+- by "window with PID X", "title Y", dimensions "A" and "B"
+- and other `metadata/context`
+
+*** File system context
+It's very important that even with those setup if user edits some real project with code it still won't be able to get the context of it inside text-input system:
+- "I'm editing the file ending with [.scm] extension"
+- "inside the repo ~/home/Projects/hatis"
+- "that has [this] filetree"
+- and ETC
+
+From now on let's call all that above "file system (fs) context" and it needs to be provided customly.
+
+*** Window manager specific context
+There is also "wm-specific-context". As far as I've got wayland itself has no unified way to tell windows/surfaces'es metadata:
+- pid
+- title
+- size
+- etc.
+
+Let's call that above "window-manager (wm) context".
+
+Now let's formulate the requirements/definitions
+** Requirements/Definitions
+*** Stability
+- pre-alpha and alpha APIS could break at any point if it's reasonable enough
+- can't yet garantee something on betas
+*** pre-alpha
+- [ ] "hatis" shoule be able to collect as much context/meta (without file-system-context and wm-specific-context) as possible and stream it to ~fibers~ channel; context system should support different "context providers" (be extendable)
+- [ ] collect it inside the "good REPL'able constuct" := well-written wayland-event-loop-alike entity that is easily extenadble, playfull and connectable in runtime with REPL (ares+arei)
+---
+there is even no "user" yet
+*** alpha-1
+- [ ] user should be able to catch text-input context with customizable filters [just ~cond~ predicate] ("came from pid X and app title satisfies [some-regexp]) in Sway WM; i might not need to add ~swaymsg~ (sway-context-provider) in pre-alpha, but totally will need it here
+- [ ] and pass it forward as a file-desriptor or port wherever he/she would like (emacs/vim)
+- [ ] should have basic tests (hard question is how to do it properly)
+*** alpha-2
+- [ ] user has access to the text-input (real utf8 string) of the context and change it however he wants (regexps, call http-api services and do some custom stuff, etc. just calling any procs (gexps?) with that string [but they should also return string])
+- [ ] user can write&call custom interceptors. Like: "I'm in text" (default rule) AND user pressed X or moved mouse that much and etc.
+*** beta-1
+- [ ] user should not even need to call any wayland (~guile-wayland~) code to be able to manipulate with text-input as he/she/etc wish
+- [ ] user get's fs-context from it's (default, it can be replaced with custom) provider
+*** beta-2
+- [ ] it has some basic UI; ui's at it's best should be described with lisp data strucrutes (be xml/json/yaml/somehing serializable) and have custom "resolvers"; default resolver is [[https://www.gnu.org/software/g-golf/][guile-g-golf]].
+- [ ] it has it's own REPL UI panel (not too ugly): user can see and interact with system in realtime (change keybingings in the input field of that very system and see the current "events" happening [keypresses, maybe buffers and contextes])
 * Dev Setup(s)
 - Emacs + [[https://git.sr.ht/~abcdw/guile-ares-rs][Ares]]/[[xhttps://git.sr.ht/~abcdw/emacs-arei][Arei]]
 - Guix System
@@ -28,6 +84,7 @@ Input-popup-surface is another breed. Won't cast to any other.
 * TODOS
 ** TODO Draft a simple GTK-based UI to show on text-input
 Best case scenario: UI should be described as lisp data structure (xml?) and it should be possible to "resolve" it structure with different custom "resolvers" for gtk, qt, etc.
+** TODO Security policy (maybe DBUS)
 ** TODO Draft a simple GTK-based UI to show interactive "input-repl" (events in real-time)
 ** TODO Figure out testing
 How do I test it from non-personal PC? Simulate wayland when being ssh-access only. Will be needed for automations like github actions or something.
