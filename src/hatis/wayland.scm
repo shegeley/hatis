@@ -137,6 +137,7 @@
       ;; Catch surface
       (input-surface
        (wl-compositor-create-surface (compositor)))
+
       (input-surface
        ;; popup-input-surface won't cast to xdg-surface
        ;; (xdg-input-surface (xdg-wm-base-get-xdg-surface (xdg-wm-base) (input-surface)))

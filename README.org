@@ -112,7 +112,7 @@ The protocol:
 - does not guarantee that events sent to this client are exhaustive, a compositor may filter some events for its own consumption,
 - does not guarantee that events sent to this client are continuous, a compositor may change and reroute keyboard events while the grab is nominally active.
 #+end_quote
-** TODO Ensure keyboard keymap memory-safety
+** DONE Ensure keyboard keymap memory-safety
 Calling ~mmap~. Do I need to ~munmap~ then?
 ** DONE Get keyboard keymap ([[https://wayland.app/protocols/wayland#wl_keyboard:event:keymap][~wl_keyboard::keymap~]])
 Get keymap from file-descriptor.

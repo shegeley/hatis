@@ -3,10 +3,9 @@
   #:use-module ((ice-9 format)
                 #:select ((format . format*)))
   #:use-module (ice-9 match)
+  #:use-module (ice-9 binary-ports)
 
   #:use-module (rnrs bytevectors)
-
-  #:use-module (mmap)
 
   #:export (get-keymap))
 
@@ -15,13 +14,7 @@
   (match format
     (0 'no-keymap)
     (1
-     ;; can be rewritten using: ~fdopen~ + ~(ice-9 binary-ports)~
-     ;; https://www.gnu.org/software/guile/manual/html_node/Binary-I_002fO.html
-     (let* [(bytevector-keymap (mmap
-                                #f size
-                                PROT_READ
-                                MAP_PRIVATE fd 0))
-            ;; TODO: munmap? memory safety?
+     (let* [(bytevector-keymap (get-bytevector-all (fdopen fd "rb")))
             (keymap (utf8->string bytevector-keymap))]
        (format* #t "keymap: ~a ~%" keymap)
        keymap))))
