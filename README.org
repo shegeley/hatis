@@ -14,6 +14,7 @@ The system should be very hackable. That's why it's written in lisp (Guile Schem
 Core idea for the project of this repository comes from the naming: "Hackable Text Input System".
 
 Hackable := easily extensible and possible to experiment with is; that's why hackable language with hackable ecosystem and REPL is chosen
+
 Text Input System := system that deals with Text input (multimedia comes afterwards, maybe in another module)
 
 So, at the first sight it's just should be able to "catch the current context" of text input [on GUI (Wayland via ~zwp_input_method_v2~)]
@@ -30,18 +31,18 @@ It's very important that even with those setup if user edits some real project w
 - "I'm editing the file ending with [.scm] extension"
 - "inside the repo ~/home/Projects/hatis"
 - "that has [this] filetree"
-- and ETC
+- etc
 
 From now on let's call all that above "file system (fs) context" and it needs to be provided customly.
 
-*** Window manager specific context
+*** Window manager context
 There is also "wm-specific-context". As far as I've got wayland itself has no unified way to tell windows/surfaces'es metadata:
 - pid
 - title
 - size
-- etc.
+- etc
 
-Let's call that above "window-manager (wm) context".
+Let's call that above "window manager (wm) context".
 
 Now let's formulate the requirements/definitions
 ** Requirements/Definitions
@@ -59,7 +60,7 @@ there is even no "user" yet
 - [ ] should have basic tests (hard question is how to do it properly)
 *** alpha-2
 - [ ] user has access to the text-input (real utf8 string) of the context and change it however he wants (regexps, call http-api services and do some custom stuff, etc. just calling any procs (gexps?) with that string [but they should also return string])
-- [ ] user can write&call custom interceptors. Like: "I'm in text" (default rule) AND user pressed X or moved mouse that much and etc.
+- [ ] user can write&call custom interceptors. Like: "I'm in text editing" (default rule) "AND user pressed X" or "moved mouse that much" etc.
 *** beta-1
 - [ ] user should not even need to call any wayland (~guile-wayland~) code to be able to manipulate with text-input as he/she/etc wish
 - [ ] user get's fs-context from it's (default, it can be replaced with custom) provider
