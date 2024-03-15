@@ -103,6 +103,20 @@ Guess it's
 (while (wl-display-roundtrip (display)))
 #+end_src
 that spins this endless loop.
+---
+From @abcdw.
+
+1. The main idea is to run the main loop in separate threa. When it runs in evalutaion thread, you can't eval anything else
+
+2. After that we need to create a buffer that will be used for output: stdout, stderr of main loop. This buffer can be anything (text file/string/whatever)
+
+The easiest way now is to write to the file instead of memory string.
+
+---
+Try:
+1. ~open-file~  with mode ~for-output-and-append~ and then parametrize ~current-output-port~ and pass the port from ~open-file~
+
+2. will run ~guile~ and function that need to be executed; ~guile -L src -c @@((hatis wayland) main)~. this way it can be started/stopped from terminal.
 ** TODO Also try [[https://wayland.app/protocols/xwayland-keyboard-grab-unstable-v1#zwp_xwayland_keyboard_grab_manager_v1:request:grab_keyboard][XWayland keyboard grabbing]] [low priority]
 Alas it seems broken at it's very core:
 #+begin_quote

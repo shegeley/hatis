@@ -15,6 +15,7 @@
 
   #:use-module (ice-9 match)
   #:use-module (ice-9 format)
+  #:use-module (ice-9 threads)
 
   #:use-module (oop goops))
 
@@ -177,3 +178,16 @@
 
 ;; Evaluate (main) only AFTER evaluating everything before it. Or ~arei~ buffer might loose the (current-output-(port?)) and won't show any print commands
 ;; (main)
+
+;; (use-modules (ice-9 textual-ports))
+;; TODO: parameters => (ice-9 atomics)?
+
+(define thread
+  (call-with-new-thread
+   (lambda ()
+     (with-output-to-file "./output.txt"
+       (lambda () (main))))))
+
+;; (cancel-thread thread) <- stop
+
+;; use system-async-mark on the thread (need to create continuation first) <- pause
