@@ -85,16 +85,31 @@ Input-popup-surface is another breed. Won't cast to any other.
 * TODOS
 ** TODO Draft a simple GTK-based UI to show on text-input
 Best case scenario: UI should be described as lisp data structure (xml?) and it should be possible to "resolve" it structure with different custom "resolvers" for gtk, qt, etc.
-** TODO Security policy (maybe DBUS)
+** TODO Security policy (maybe DBUS?)
+Ask @avp (@artyom-poptsov) once again for clarifications. Pairing?
 ** TODO Draft a simple GTK-based UI to show interactive "input-repl" (events in real-time)
 ** TODO Figure out testing
 How do I test it from non-personal PC? Simulate wayland when being ssh-access only. Will be needed for automations like github actions or something.
-** TODO Parse keyboard-events ~uint~ with ~guile-libxkbcommon~ (or ~guile-libinput~?) :keyboard:input:
+** TODO Parse keyboard-events ~uint~ with ~guile-libxkbcommon~ (or ~guile-libinput~?)
+What's ment by parsing? Turn key serial (unit) into ... what? xkb "entry"?
+** TODO Catch [[https://wayland.app/protocols/wayland#wl_touch][wl_touch]]
+** TODO Catch clipboard (~wl_data_control/source~ + ~wl_primary_selection~)
+There is on ~wl_clipboard~, only "wl_data_source".
+See:
+1. https://emersion.fr/blog/2020/wayland-clipboard-drag-and-drop/
+2. https://wayland.app/protocols/primary-selection-unstable-v1
+3. https://wayland.app/protocols/wlr-data-control-unstable-v1
+** TODO Catch [[https://wayland.app/protocols/wayland#wl_pointer][wl_pointer]]
 ** TODO Get ~app_id~ + ~pid~ & other meta from text-input context
 There is no "unified" way of doing this in all Wayland implementationsthis because it's not Wayland's responsibility in general.
 
 - sway: [[https://github.com/swaywm/sway/blob/master/swaymsg/main.c][swaymsg]]
-** TODO Parse xkb keymap format (~(ice-9 peg)~?)
+** TODO Parse xkb keymap format [low priority]
+The usecase in unclear yet
+
+Options:
+1. (ice-9 peg)
+2. tree-sitter grammar: [[https://crates.io/crates/xkb-parser/0.1.0/dependencies][xkb-parser]] (rust :()
 ** TODO Add start/pause/stop/restart option to the (main) loop
 Currently when the repl is launched and the (main) in running it's not possible to eval any other expression. Only to interrupt the main loop and loose all the set parameters and context.
 
