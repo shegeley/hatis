@@ -10,11 +10,9 @@
   #:export (get-keymap))
 
 (define (get-keymap format fd size)
-  (format* #t "get-keymap-args: ~a ~a ~a" format fd size)
   (match format
     (0 'no-keymap)
     (1
      (let* [(bytevector-keymap (get-bytevector-all (fdopen fd "rb")))
             (keymap (utf8->string bytevector-keymap))]
-       (format* #t "keymap: ~a ~%" keymap)
        keymap))))
