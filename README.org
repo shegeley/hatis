@@ -53,7 +53,7 @@ Now let's formulate the requirements/definitions
 - [ ] "hatis" shoule be able to collect as much context/meta (without file-system-context and wm-specific-context) as possible and stream it to ~fibers~ channel; context system should support different "context providers" (be extendable)
 - [ ] collect it inside the "good REPL'able constuct" := well-written wayland-event-loop-alike entity that is easily extenadble, playfull and connectable in runtime with REPL (ares+arei)
 ---
-there is even no "user" yet
+there is even no "user" yet. btw "user" should also be defined in the context of this system
 *** alpha-1
 - [ ] user should be able to catch text-input context with customizable filters [just ~cond~ predicate] ("came from pid X and app title satisfies [some-regexp]) in Sway WM; i might not need to add ~swaymsg~ (sway-context-provider) in pre-alpha, but totally will need it here
 - [ ] and pass it forward as a file-desriptor or port wherever he/she would like (emacs/vim)
@@ -72,13 +72,30 @@ there is even no "user" yet
 - Guix System
 - Gnome on Wayland as primary WM
 - Sway launched in command line ("wm in a window"); from there I launch repl with ~bash repl.sh~ and I interact with it on Gnome with ~arei~
+- Programm writes dev/debug events to "output.txt"; can be read with ~tail -f output.txt | nl~
 
   You can also launch it on native sway but as I'm still experimenting with keyboard grabbing and "dangerous" stuff like this you might end up loosing the control completely and having to restart the machine.
 * Notes
+** On distinguishing text input context and getting the text that's already into text field
+By default wayland doesn't have ability to explicitly "distingush" one input context from another and also access what's already [[https://wayland.app/protocols/input-method-unstable-v2#zwp_input_method_v2:request:commit_string][commited]] into text-input.
+
+So, imagine the simplest usecase: redirecting the input to some socket and editing it via emacs. As soon as emacs in closed and commit event is done there won't be option to retrieve the commited text and focusing there again and sending to emacs will cause only appending new text.
+
+It would be nice to save "unfinished" text-input. See [[id:8fce6ad3-309c-4354-bffc-dab11f37c6cc][TODO]]. And not only from one text-input field, but from all of them. But how do I distinguish them?... There is no ID given to each... Maybe [[id:6759d3ce-3027-452e-b95c-d420b89d7394][popup surface]]?
 ** On using ~guile-wayland~ listeners
 ALL EVENTS MUST HAVE HANDLERS. Or will result eror «listener function for opcode 3 of ... is NULL».
 
 It would be nice to create some form of wrapper that appends ~(lambda args #t)~ for all unhandled events [low priority] in the ~guile-wayland~ project.
+** input-method keypress event keycode
+#+begin_quote
+The scancode from this event is the Linux evdev scancode. To translate this to an XKB scancode, you must add 8 to the evdev scancode.
+#+end_quote
+Code:
+#+begin_src scheme
+(define (keycode:evdev->xkb keycode)
+  "Translates evdev keycode to xkb keycode"
+  (+ keycode 8))
+#+end_src
 ** ~input-popup-surface~ vs ~surface~ vs ~xdg-surface~
 Input-popup-surface is another breed. Won't cast to any other.
 ** [[httphttps://github.com/swaywm/wlroots/blob/master/examples/input-method.c][input-method usage example from swaywm]]
@@ -92,18 +109,24 @@ Ask @avp (@artyom-poptsov) once again for clarifications. Pairing?
 How do I test it from non-personal PC? Simulate wayland when being ssh-access only. Will be needed for automations like github actions or something.
 ** TODO Parse keyboard-events ~uint~ with ~guile-libxkbcommon~ (or ~guile-libinput~?)
 What's ment by parsing? Turn key serial (unit) into ... what? xkb "entry"?
+
 ** TODO Catch [[https://wayland.app/protocols/wayland#wl_touch][wl_touch]]
-** TODO Catch clipboard (~wl_data_control/source~ + ~wl_primary_selection~)
+For now just create default listener that will simply print events
+** TODO Catch clipboard (~wl_data_control/source~ + ~wl_primary_selection~ or something)
+For now just create default listener that will simply print events
+---
 There is on ~wl_clipboard~, only "wl_data_source".
 See:
 1. https://emersion.fr/blog/2020/wayland-clipboard-drag-and-drop/
 2. https://wayland.app/protocols/primary-selection-unstable-v1
 3. https://wayland.app/protocols/wlr-data-control-unstable-v1
 ** TODO Catch [[https://wayland.app/protocols/wayland#wl_pointer][wl_pointer]]
-** TODO Get ~app_id~ + ~pid~ & other meta from text-input context
+For now just create default listener that will simply print events
+** TODO Get "window manager context" (see definitions) (~app_id~ + ~pid~ & etc)
 There is no "unified" way of doing this in all Wayland implementationsthis because it's not Wayland's responsibility in general.
 
 - sway: [[https://github.com/swaywm/sway/blob/master/swaymsg/main.c][swaymsg]]
+** TODO Get "file system context" (see definitions)
 ** TODO Parse xkb keymap format [low priority]
 The usecase in unclear yet
 
@@ -117,21 +140,30 @@ Guess it's
 #+begin_src scheme
 (while (wl-display-roundtrip (display)))
 #+end_src
-that spins this endless loop.
----
-From @abcdw.
+Into multiple hash-maps:
+1. keycodes to "keynames" [number - <AB10>]
+2.
+** TODO Add proper stop (+restart should be as a bonus) ability
+For now calling ~cancel-thread~ on the main thread won't "free" the catched/grabbed entities: input-method, keyboard-grab, etc.
 
-1. The main idea is to run the main loop in separate threa. When it runs in evalutaion thread, you can't eval anything else
+After cancelling or interuoting evaluation via arei it will print "Unavialiable!" when trying to "catch" input method.
 
-2. After that we need to create a buffer that will be used for output: stdout, stderr of main loop. This buffer can be anything (text file/string/whatever)
+Maybe something like
+#+begin_src scheme
+(define (restart)
+  (wl-display-disconnect (ref (display))))
+#+end_src
 
-The easiest way now is to write to the file instead of memory string.
-
----
-Try:
-1. ~open-file~  with mode ~for-output-and-append~ and then parametrize ~current-output-port~ and pass the port from ~open-file~
-
-2. will run ~guile~ and function that need to be executed; ~guile -L src -c @@((hatis wayland) main)~. this way it can be started/stopped from terminal.
+Think about it, try different things
+** TODO Figure out if (how?) it's possible to distinguish one "text-input-context" from another
+:PROPERTIES:
+:ID:       8fce6ad3-309c-4354-bffc-dab11f37c6cc
+:END:
+** TODO Try distinguish text-input context via it's popup surface
+:PROPERTIES:
+:ID:       6759d3ce-3027-452e-b95c-d420b89d7394
+:END:
+Is popup surface something that just appears and dies right away or it's "saved" and can be compared on equality?
 ** TODO Also try [[https://wayland.app/protocols/xwayland-keyboard-grab-unstable-v1#zwp_xwayland_keyboard_grab_manager_v1:request:grab_keyboard][XWayland keyboard grabbing]] [low priority]
 Alas it seems broken at it's very core:
 #+begin_quote
@@ -141,6 +173,19 @@ The protocol:
 - does not guarantee that events sent to this client are exhaustive, a compositor may filter some events for its own consumption,
 - does not guarantee that events sent to this client are continuous, a compositor may change and reroute keyboard events while the grab is nominally active.
 #+end_quote
+** DONE Run main loop in a separate thread not to suspend ares/arei repl
+From @abcdw.
+
+1. The main idea is to run the main loop in separate threa. When it runs in evalutaion thread, you can't eval anything else
+
+2. After that we need to create a buffer that will be used for output: stdout, stderr of main loop. This buffer can be anything (text file/string/whatever)
+
+The easiest way now is to write to the file instead of memory string.
+** DONE Figure out basic log (output) management
+Not to mess the arei/ares buffer I'm redirecting all the output to some sample file (for now it's just "./output.txt") and write all to that using ~open-port~ (in append-mode) + ~with-output-to-port~.
+
+It can be monitored with ~tail -f output.txt | nl~ (last one is ~number lines~, optional)
+** DONE Figure out what's key uid in a keypress event event means
 ** DONE Ensure keyboard keymap memory-safety
 Calling ~mmap~. Do I need to ~munmap~ then?
 ** DONE Get keyboard keymap ([[https://wayland.app/protocols/wayland#wl_keyboard:event:keymap][~wl_keyboard::keymap~]])
