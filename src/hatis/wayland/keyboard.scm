@@ -7,7 +7,8 @@
 
   #:use-module (rnrs bytevectors)
 
-  #:export (get-keymap))
+  #:export (get-keymap
+            keycode:evdev->xkb))
 
 (define (get-keymap format fd size)
   (match format
@@ -15,4 +16,9 @@
     (1
      (let* [(bytevector-keymap (get-bytevector-all (fdopen fd "rb")))
             (keymap (utf8->string bytevector-keymap))]
-       keymap))))
+       keymap))
+    (_ 'unknown)))
+
+(define (keycode:evdev->xkb keycode)
+  "Translates evdev keycode to xkb keycode"
+  (+ keycode 8))
