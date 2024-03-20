@@ -108,7 +108,7 @@ modules for building a Wayland compositor.")
               (method git-fetch)
               (uri (git-reference
                     (url "https://github.com/Z572/guile-bytestructure-class")
-                    (commit "19f8278dfe62c75985abe108c8aa6f559af0d964")                 ))
+                    (commit "2cdb25c445e87c3d9e7e1a169a3ea3c476f373e3")))
               (file-name (git-file-name name version))
               (sha256
                (base32
