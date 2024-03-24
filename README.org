@@ -76,13 +76,21 @@ there is even no "user" yet. btw "user" should also be defined in the context of
 
   You can also launch it on native sway but as I'm still experimenting with keyboard grabbing and "dangerous" stuff like this you might end up loosing the control completely and having to restart the machine.
 * Notes
+** [[https://wayland.app/protocols/text-cursor-position][Weston Unstable text cursor position]]
+Might be "the hiden key to everything" (getting + saving text-input context). At least it "knows" it's surface.
+** Context of input method protocol
+What can I access with input method manager and input method itself is just wl_seat.
+
+Having wl_seat I can access current focused surface (window), wl_pointer, wl_touch and wl_keyboard. (keyboard can be accessed via keyboard_grab directly anyway).
 ** On distinguishing text input context and getting the text that's already into text field
-By default wayland doesn't have ability to explicitly "distingush" one input context from another and also access what's already [[https://wayland.app/protocols/input-method-unstable-v2#zwp_input_method_v2:request:commit_string][commited]] into text-input.
+By default wayland doesn't provide an ability to explicitly "distingush" one input context from another and also access what's already [[https://wayland.app/protocols/input-method-unstable-v2#zwp_input_method_v2:request:commit_string][commited]] into text-input.
 
 So, imagine the simplest usecase: redirecting the input to some socket and editing it via emacs. As soon as emacs in closed and commit event is done there won't be option to retrieve the commited text and focusing there again and sending to emacs will cause only appending new text.
 
-It would be nice to save "unfinished" text-input. See [[id:8fce6ad3-309c-4354-bffc-dab11f37c6cc][TODO]]. And not only from one text-input field, but from all of them. But how do I distinguish them?... There is no ID given to each... Maybe [[id:6759d3ce-3027-452e-b95c-d420b89d7394][popup surface]]?
-** On using ~guile-wayland~ listeners
+It would be nice to save "unfinished" text-input. But it's not possible in the current implementation of wayland (wlroots) input-method protocol.
+
+At max I can have the history of inserts and their identifiers (this/or that window/app).
+** On using ~guile-wayland~ listener
 ALL EVENTS MUST HAVE HANDLERS. Or will result eror «listener function for opcode 3 of ... is NULL».
 
 It would be nice to create some form of wrapper that appends ~(lambda args #t)~ for all unhandled events [low priority] in the ~guile-wayland~ project.
@@ -96,7 +104,11 @@ Code:
   "Translates evdev keycode to xkb keycode"
   (+ keycode 8))
 #+end_src
-** ~input-popup-surface~ vs ~surface~ vs ~xdg-surface~
+** On XOrg+XWayland Input Method possibilities
+Xorg has it's own input-method protocol (standartized in 1993/4!) https://www.x.org/releases/X11R7.6/doc/libX11/specs/XIM/xim.html
+
+For now X support is not a priority. XWayland also has keyboard grab support. See [[id:\[\[id:8793f30e-76d8-4443-a048-fc760da8918e\]\]][the task]].
+** On ~input-popup-surface~ vs ~surface~ vs ~xdg-surface~
 Input-popup-surface is another breed. Won't cast to any other.
 ** [[httphttps://github.com/swaywm/wlroots/blob/master/examples/input-method.c][input-method usage example from swaywm]]
 * TODOS
@@ -128,17 +140,66 @@ There is no "unified" way of doing this in all Wayland implementationsthis becau
 - sway: [[https://github.com/swaywm/sway/blob/master/swaymsg/main.c][swaymsg]]
 ** TODO Get "file system context" (see definitions)
 ** TODO Parse xkb keymap format [low priority]
-The usecase in unclear yet
+Having a keypress uid I can translate it to any character with any keyboard mapping basically.
 
-Options:
-1. (ice-9 peg)
-2. tree-sitter grammar: [[https://crates.io/crates/xkb-parser/0.1.0/dependencies][xkb-parser]] (rust :()
-** TODO Add start/pause/stop/restart option to the (main) loop
-Currently when the repl is launched and the (main) in running it's not possible to eval any other expression. Only to interrupt the main loop and loose all the set parameters and context.
+I can parse what's came from grabbed keyword:
+#+begin_src
+kb_keymap {
+    xkb_keycodes "(unnamed)" {
+            minimum = 8;
+            maximum = 708;
+            <ESC>                = 9;
+            <AE01>               = 10;
+            <AE02>               = 11;
+            <AE03>               = 12;
+            <AE04>               = 13;
+            <AE05>               = 14;
+            <AE06>               = 15;
+            <AE07>               = 16;
+            <AE08>               = 17;
+            <AE09>               = 18;
+            <AE10>               = 19;
+            ...
+     };
 
-Guess it's
-#+begin_src scheme
-(while (wl-display-roundtrip (display)))
+    xkb_types "(unnamed)" {
+            virtual_modifiers NumLock,Alt,LevelThree,LevelFive,Meta,Super,Hyper,ScrollLock;
+
+            type "ONE_LEVEL" {
+                    modifiers= none;
+                    level_name[1]= "Any";
+            };
+            ...
+    };
+
+    xkb_compatibility "(unnamed)" {
+    ...
+    };
+
+    xkb_symbols "(unnamed)" {
+            name[Group1]="English (US)";
+            name[Group2]="Russian";
+
+            key <ESC>                {	[          Escape ] };
+            key <AE01>               {
+                    symbols[Group1]= [               1,          exclam ],
+                    symbols[Group2]= [               1,          exclam ]
+            };
+            key <AE02>               {
+                    symbols[Group1]= [               2,              at ],
+                    symbols[Group2]= [               2,        quotedbl ]
+            };
+            key <AE03>               {
+                    symbols[Group1]= [               3,      numbersign ],
+                    symbols[Group2]= [               3,      numerosign ]
+            };
+            key <AE04>               {
+                    symbols[Group1]= [               4,          dollar ],
+                    symbols[Group2]= [               4,       semicolon ]
+            };
+         ...
+    };
+};
 #+end_src
 Into multiple hash-maps:
 1. keycodes to "keynames" [number - <AB10>]
@@ -159,12 +220,10 @@ Think about it, try different things
 :PROPERTIES:
 :ID:       8fce6ad3-309c-4354-bffc-dab11f37c6cc
 :END:
-** TODO Try distinguish text-input context via it's popup surface
-:PROPERTIES:
-:ID:       6759d3ce-3027-452e-b95c-d420b89d7394
-:END:
-Is popup surface something that just appears and dies right away or it's "saved" and can be compared on equality?
 ** TODO Also try [[https://wayland.app/protocols/xwayland-keyboard-grab-unstable-v1#zwp_xwayland_keyboard_grab_manager_v1:request:grab_keyboard][XWayland keyboard grabbing]] [low priority]
+:PROPERTIES:
+:ID:       8793f30e-76d8-4443-a048-fc760da8918e
+:END:
 Alas it seems broken at it's very core:
 #+begin_quote
 The protocol:
@@ -173,6 +232,13 @@ The protocol:
 - does not guarantee that events sent to this client are exhaustive, a compositor may filter some events for its own consumption,
 - does not guarantee that events sent to this client are continuous, a compositor may change and reroute keyboard events while the grab is nominally active.
 #+end_quote
+** DONE Try distinguish text-input context via it's popup surface
+:PROPERTIES:
+:ID:       6759d3ce-3027-452e-b95c-d420b89d7394
+:END:
+Is popup surface something that just appears and dies right away or it's "saved" and can be compared on equality?
+---
+Answer: no. Popup surface won't allow it.
 ** DONE Run main loop in a separate thread not to suspend ares/arei repl
 From @abcdw.
 
