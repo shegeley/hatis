@@ -6,7 +6,8 @@
   #:export (get-keymap
             keycode:evdev->xkb))
 
-(define (get-keymap format fd size)
+(define (get-keymap format fd _)
+  "Read keymap from `fd' (file descriptor) as a string in xkb format"
   (match format
     (0 'no-keymap)
     (1 (read-string-from-fd fd))
