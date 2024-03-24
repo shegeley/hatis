@@ -1,5 +1,6 @@
 (define-module (hatis utils)
   #:use-module (rnrs bytevectors)
+  #:use-module (ice-9 binary-ports)
 
   #:export (read-string-from-fd))
 
