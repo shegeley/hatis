@@ -11,7 +11,8 @@
   #:use-module (fibers)
   #:use-module (fibers channels)
 
-  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-1) ;; list base
+  #:use-module (srfi srfi-69) ;; hash-tables
 
   #:use-module (ice-9 match)
   #:use-module (ice-9 format)
@@ -21,14 +22,14 @@
   #:use-module (oop goops))
 
 ;; clojure-alike atomic-box interfaces
-(define (update x f)
-  (atomic-box-set! x (f (atomic-box-ref x))))
+(define (reset! cage val)
+  (atomic-box-set! cage val))
 
-(define (reset! x val)
-  (atomic-box-set! x val))
+(define (ref cage)
+  (atomic-box-ref cage))
 
-(define (ref x)
-  (atomic-box-ref x))
+(define (update cage f)
+  (reset! cage (f (ref cage))))
 ;; end
 
 (define (current-desktop)
@@ -73,24 +74,40 @@
   ;; The xdg_wm_base interface is exposed as a global object enabling clients to turn their wl_surfaces into windows in a desktop environment. It defines the basic functionality needed for clients and the compositor to create windows that can be dragged, resized, maximized, etc, as well as creating transient windows such as popup menus.
 (make-atomic-box #f))
 
+(define (releasers)
+  (alist->hash-table
+   `((,<zwp-input-method-manager-v2> . ,zwp-input-method-manager-v2-destroy)
+     (,<zwp-input-method-v2> . ,zwp-input-method-v2-destroy))))
+
+(define* (release cage x #:key (releasers releasers))
+  (let [(release (hash-table-ref (releasers) (class-of x) (const #f)))]
+    (when release (release x))
+    (reset! cage #f)))
+
 (define registry-listener
   (make <wl-registry-listener>
     #:global
     (lambda* (data registry name interface version)
-      (format #t "interface: '~a', version: ~a, name: ~a~%"
+      (format #t "interface: '~a', version: ~a, name: ~a ~%"
               interface version name)
       (cond
        ((string=? "wl_compositor" interface)
-        (reset! compositor (wrap-wl-compositor (wl-registry-bind registry name %wl-compositor-interface 3))))
+        (catch*
+          compositor
+          (wrap-wl-compositor (wl-registry-bind registry name %wl-compositor-interface 3))))
        ((string=? "wl_seat" interface)
-        (reset! seat (wrap-wl-seat (wl-registry-bind registry name %wl-seat-interface 3))))
+        (catch*
+          seat
+          (wrap-wl-seat (wl-registry-bind registry name %wl-seat-interface 3))))
        ((string=? "zwp_input_method_manager_v2" interface)
-        (reset! input-method-manager (wrap-zwp-input-method-manager-v2
-                                      (wl-registry-bind registry name %zwp-input-method-manager-v2-interface 1))))
+        (catch*
+          input-method-manager
+          (wrap-zwp-input-method-manager-v2
+           (wl-registry-bind registry name %zwp-input-method-manager-v2-interface 1))))
        ((string=? "xdg_wm_base" interface)
-        (reset! xdg-wm-base
-                (wrap-xdg-wm-base
-                 (wl-registry-bind registry name %xdg-wm-base-interface 2))))))
+        (catch* xdg-wm-base
+          (wrap-xdg-wm-base
+           (wl-registry-bind registry name %xdg-wm-base-interface 2))))))
     #:global-remove
     (lambda (data registry name)
       (pk 'remove data registry name))))
@@ -115,7 +132,7 @@
     #:keymap
     (lambda args
       (format #t "keymap! args: ~a ~%" args)
-      (reset! keymap (apply get-keymap (drop args 2))))
+      (catch* keymap (apply get-keymap (drop args 2))))
     #:modifiers
     (lambda args
       (format #t "modifiers! args: ~a ~%" args))
@@ -149,19 +166,22 @@
       (format #t "activate! im: ~a ~%" im)
       ;; NOTE: need to grab keyboard + input surface
 
-      ;; Catch surface
-      (reset! input-surface
-       (wl-compositor-create-surface (ref compositor)))
+      ;; Catch* surface
+      (catch*
+        input-surface
+        (wl-compositor-create-surface (ref compositor)))
 
-      (reset! input-surface
-       ;; popup-input-surface won't cast to xdg-surface
-       ;; (xdg-input-surface (xdg-wm-base-get-xdg-surface (xdg-wm-base) (input-surface)))
-       ;; ERROR: «not a <wl-surface> or #f #<<zwp-input-popup-surface-v2> 7efd12918c80>»
-       (zwp-input-method-v2-get-input-popup-surface im (ref input-surface)))
+      (catch*
+        ;; popup-input-surface won't cast to xdg-surface
+        ;; (xdg-input-surface (xdg-wm-base-get-xdg-surface (xdg-wm-base) (input-surface)))
+        ;; ERROR: «not a <wl-surface> or #f #<<zwp-input-popup-surface-v2> 7efd12918c80>»
+        input-surface
+        (zwp-input-method-v2-get-input-popup-surface im (ref input-surface)))
 
       ;; Grab keyboard
-      (reset! keyboard (zwp-input-method-v2-grab-keyboard im))
-      (zwp-input-method-keyboard-grab-v2-add-listener (ref keyboard) keyboard-grab-listener))
+      (catch*
+        keyboard
+        (zwp-input-method-v2-grab-keyboard im)))
     #:deactivate
     (lambda args
       (format #t "leave! args: ~a ~%" args)
@@ -169,26 +189,64 @@
       ;; (zwp-input-method-keyboard-grab-v2-release (keyboard))
       )))
 
+(define (listeners)
+  "Here listeners is a proc because guile don't have clojure-alike `declare' and listeners are declared after their reference"
+  (alist->hash-table
+   `((,<wl-registry> . ,registry-listener)
+     (,<zwp-input-method-keyboard-grab-v2> . ,keyboard-grab-listener)
+     (,<zwp-input-method-v2> . ,input-method-listener))))
+
+(define (add-listener x listener)
+  (let* [(class (class-of x))
+         (get-name (compose
+                    string->symbol
+                    (compose ;; delete first + last character ("<"+">")
+                     (lambda (x) (string-drop x 1))
+                     (lambda (x) (string-drop-right x 1)))
+                    symbol->string
+                    class-name))
+         (name (get-name class))
+         (add-listener-proc (module-ref (current-module) (symbol-append name '-add-listener)))]
+    (format #t "Adding listener to ~a ~%" x)
+    (add-listener-proc x listener)
+    (format #t "Listener added to ~a ~%" x)))
+
+(define* (catch* cage x #:key (listeners listeners))
+  (format #t "Catch* ~a into ~a ~%" x cage)
+  (if (ref cage)
+      (release cage x)
+      (begin
+        (reset! cage x)
+        (let [(listener (hash-table-ref (listeners) ;; ares will fail to eval if this one is not dynamic call
+                                        (class-of x) (const #f)))]
+          (when listener (add-listener x listener))
+          #t))))
+
 (define (main)
-  (reset! display (wl-display-connect))
+  (catch* display (wl-display-connect))
   (unless (ref display)
     (display "Unable to connect to wayland compositor")
     (newline)
     (exit -1))
-  (format #t "Connect to Wayland compositor: ~a ~%" (ref display))
-  (reset! registry (wl-display-get-registry (ref display)))
-  (wl-registry-add-listener (ref registry) registry-listener)
+
+  (catch* registry (wl-display-get-registry (ref display)))
+
+  ;; roundtip here is needed to catch* all the interfaces inside registry-listener
+  ;; https://wayland.freedesktop.org/docs/html/apb.html#Client-classwl__display_1ab60f38c2f80980ac84f347e932793390
   (wl-display-roundtrip (ref display))
+
   (if (ref input-method-manager)
-      (format #t "Got it!~%")
+      (format #t "Input manager available: ~a ~%" (ref input-method-manager))
       (error (format #f "Can't access input-manager!")))
-  (format #t "Input-method manager: ~a ~%" (ref input-method-manager))
-  (reset! input-method (zwp-input-method-manager-v2-get-input-method
-                 (ref input-method-manager)
-                 (ref seat)))
+
+  (catch* input-method
+    (zwp-input-method-manager-v2-get-input-method
+     (ref input-method-manager)
+     (ref seat)))
+
   (format #t "Input-method: ~a ~%" (ref input-method))
-  (zwp-input-method-v2-add-listener (ref input-method) input-method-listener)
-  (while (wl-display-roundtrip (ref display))))
+
+  (while #t (wl-display-roundtrip (ref display))))
 
 (define output-file
   (make-parameter "./output.txt"))
@@ -205,4 +263,7 @@
    (lambda ()
      (with-output-to-port output-port main))))
 
-;; (cancel-thread thread)
+#|
+(zwp-input-method-v2-commit-string (ref input-method) "Lorem ipsum")
+(zwp-input-method-v2-commit (ref input-method) 1)
+|#
