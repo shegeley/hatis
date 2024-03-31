@@ -76,6 +76,60 @@ there is even no "user" yet. btw "user" should also be defined in the context of
 
   You can also launch it on native sway but as I'm still experimenting with keyboard grabbing and "dangerous" stuff like this you might end up loosing the control completely and having to restart the machine.
 * Notes
+** ~(oop goops describe)~ dumps examples
+Class introspecrion:
+#+begin_src scheme
+(use-modules
+ (wayland proxy)
+ (wayland interface)
+ (wayland client protocol wayland)
+
+ (oop goops describe))
+
+(describe <wl-registry>)
+#+end_src
+
+#+begin_src
+<wl-registry> is a class. It's an instance of <bytestructure-class>
+Superclasses are:
+    <wl-proxy>
+    <bs>
+(No direct slot)
+(No direct subclass)
+Class Precedence List is:
+    <wl-registry>
+    <wl-proxy>
+    <bs>
+    <object>
+    <top>
+Class direct methods are:
+    Method #<<accessor-method> (<wl-registry> <top>) 7f094017ad00>
+	     Generic: setter:bs-pointer
+	Specializers: <wl-registry> <top>
+    Method #<<accessor-method> (<wl-registry>) 7f094017ad40>
+	     Generic: bs-pointer
+	Specializers: <wl-registry>
+#+end_src
+
+Object introspection:
+#+begin_src scheme
+(use-modules
+ (wayland proxy)
+ (wayland interface)
+ (wayland client protocol wayland)
+
+ (oop goops describe))
+
+(describe (make <wl-registry>))
+#+end_src
+
+#+begin_src
+#<<wl-registry> 7f0943304790> is an instance of class <wl-registry>
+Slots are:
+     %pointer = #<pointer 0x7f0947686e20>
+#+end_src
+---
+It doesn't seems much usefull for now.
 ** [[https://wayland.app/protocols/text-cursor-position][Weston Unstable text cursor position]]
 Might be "the hiden key to everything" (getting + saving text-input context). At least it "knows" it's surface.
 ** Context of input method protocol
