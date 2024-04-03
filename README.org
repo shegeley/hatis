@@ -76,6 +76,35 @@ there is even no "user" yet. btw "user" should also be defined in the context of
 
   You can also launch it on native sway but as I'm still experimenting with keyboard grabbing and "dangerous" stuff like this you might end up loosing the control completely and having to restart the machine.
 * Notes
+** ~guile-ares-rs~ fails to eval ~call-with-new-thread~
+I've met a strange problem when tried to ~arei-connect~ + ~arei-eval-buffer~ with
+#+begin_src sh
+guix shell guile-next guile-ares-rs -f guix.scm \
+     --rebuild-cache\
+     --development \
+     --no-substitutes \
+     -- guile \
+     -c '((@ (nrepl server) run-nrepl-server) #:port 7888)'
+#+end_src
+It fails immidiately when I do
+#+begin_src scheme
+(call-with-new-thread
+ (lambda ()
+   (with-output-to-port output-port main)))
+#+end_src
+But works with just ~(main)~ (althought eval-thread hangs completely and you won't be able to call anything).
+
+Workaround is to launch guile repl without ~-c~:
+#+begin_src sh
+guix shell guile-next guile-ares-rs -f guix.scm \
+     --rebuild-cache\
+     --development \
+     --no-substitutes \
+     -- guile
+#+end_src
+and them eval ~((@ (nrepl server) run-nrepl-server) #:port 7888)~
+
+It will work then. I don't know why ~-c~ flag sometimes gives this behavior.
 ** ~(oop goops describe)~ dumps examples
 Class introspecrion:
 #+begin_src scheme
