@@ -7,7 +7,12 @@
 #      --listen=1338
 
 # ares + arei
-guix shell guile-next guile-ares-rs -f guix.scm \
-     --rebuild-cache --development \
+guix shell \
+     --development \
+     --rebuild-cache \
+     --no-substitutes \
+     guile-next \
+     guile-ares-rs \
+     -f guix.scm \
      -- guile \
-     -c '((@ (nrepl server) run-nrepl-server) #:port 7888)'
+     -e '((@ (nrepl server) run-nrepl-server) #:port 7888)'
