@@ -203,8 +203,10 @@
       (release cage x)
       (begin
         (reset! cage x)
-        (let [(listener (hash-table-ref (listeners) ;; ares will fail to eval if this one is not dynamic call
-                                        (class-of x) (const #f)))]
+        (let [(listener (hash-table-ref
+                         (listeners) ;; ares will fail to eval if this one is not dynamic call
+                         (class-of x)
+                         (const #f)))]
           (when listener (add-listener x listener))
           #t))))
 
