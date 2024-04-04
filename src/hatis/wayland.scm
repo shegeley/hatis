@@ -7,6 +7,7 @@
   #:use-module (wayland client protocol xdg-shell)
 
   #:use-module (hatis wayland keyboard)
+  #:use-module (hatis wayland wrappers)
 
   #:use-module (fibers)
   #:use-module (fibers channels)
@@ -195,21 +196,6 @@
    `((,<wl-registry> . ,registry-listener)
      (,<zwp-input-method-keyboard-grab-v2> . ,keyboard-grab-listener)
      (,<zwp-input-method-v2> . ,input-method-listener))))
-
-(define (add-listener x listener)
-  (let* [(class (class-of x))
-         (get-name (compose
-                    string->symbol
-                    (compose ;; delete first + last character ("<"+">")
-                     (lambda (x) (string-drop x 1))
-                     (lambda (x) (string-drop-right x 1)))
-                    symbol->string
-                    class-name))
-         (name (get-name class))
-         (add-listener-proc (module-ref (current-module) (symbol-append name '-add-listener)))]
-    (format #t "Adding listener to ~a ~%" x)
-    (add-listener-proc x listener)
-    (format #t "Listener added to ~a ~%" x)))
 
 (define* (catch* cage x #:key (listeners listeners))
   (format #t "Catch* ~a into ~a ~%" x cage)
