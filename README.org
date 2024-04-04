@@ -76,7 +76,7 @@ there is even no "user" yet. btw "user" should also be defined in the context of
 
   You can also launch it on native sway but as I'm still experimenting with keyboard grabbing and "dangerous" stuff like this you might end up loosing the control completely and having to restart the machine.
 * Notes
-** ~guile-ares-rs~ fails to eval ~call-with-new-thread~
+** ~guile-ares-rs~ ~(nrepl server)~ problems with loading
 I've met a strange problem when tried to ~arei-connect~ + ~arei-eval-buffer~ with
 #+begin_src sh
 guix shell guile-next guile-ares-rs -f guix.scm \
@@ -105,6 +105,8 @@ guix shell guile-next guile-ares-rs -f guix.scm \
 and them eval ~((@ (nrepl server) run-nrepl-server) #:port 7888)~
 
 It will work then. I don't know why ~-c~ flag sometimes gives this behavior.
+
+UPDATE: created separate repl module. ~(nrepl server)~ won't load from module with just ~#:use-module~, only ~#:autoload~.
 ** ~(oop goops describe)~ dumps examples
 Class introspecrion:
 #+begin_src scheme
