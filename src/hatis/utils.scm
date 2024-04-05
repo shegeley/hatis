@@ -14,7 +14,7 @@
    (string-replace-substring str "_" "-"))
 
 (define* (live-load x #:key (module (current-module)))
-  (module-ref module
-              (cond
-               ((string? x) string->symbol)
-               ((symbol? x) x)) x))
+  (module-ref
+   module
+   (cond ((string? x) (string->symbol x))
+         ((symbol? x) x))))
