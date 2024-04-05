@@ -11,5 +11,5 @@
   (alist->hash-table
    `((wl-compositor . 3)
      (wl-seat . 3)
-     (zwp-input-manager-v2 . 1)
+     (zwp-input-method-manager-v2 . 1)
      (xdg-wm-base . 2))))
