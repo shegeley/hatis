@@ -6,6 +6,7 @@
   #:use-module (wayland client protocol wayland)
   #:use-module (wayland client protocol xdg-shell)
 
+  #:use-module ((hatis sway) #:prefix sway:)
   #:use-module (hatis wayland keyboard)
   #:use-module (hatis wayland wrappers)
 
@@ -85,33 +86,29 @@
     (when release (release x))
     (reset! cage #f)))
 
+(define (sway:wrap-binder . args)
+  (apply wrap-binder (append args (list #:versioning sway:versioning))))
+
 (define registry-listener
   (make <wl-registry-listener>
     #:global
-    (lambda* (data registry name interface version)
-      (format #t "interface: '~a', version: ~a, name: ~a ~%"
-              interface version name)
-      (cond
-       ((string=? "wl_compositor" interface)
-        (catch*
-          compositor
-          (wrap-wl-compositor (wl-registry-bind registry name %wl-compositor-interface 3))))
-       ((string=? "wl_seat" interface)
-        (catch*
-          seat
-          (wrap-wl-seat (wl-registry-bind registry name %wl-seat-interface 3))))
-       ((string=? "zwp_input_method_manager_v2" interface)
-        (catch*
-          input-method-manager
-          (wrap-zwp-input-method-manager-v2
-           (wl-registry-bind registry name %zwp-input-method-manager-v2-interface 1))))
-       ((string=? "xdg_wm_base" interface)
-        (catch* xdg-wm-base
-          (wrap-xdg-wm-base
-           (wl-registry-bind registry name %xdg-wm-base-interface 2))))))
-    #:global-remove
-    (lambda (data registry name)
-      (pk 'remove data registry name))))
+    (lambda* args
+      (match-let* [((data registry name interface version) args)]
+        (format #t "interface: '~a', version: ~a, name: ~a ~%"
+                interface version name)
+        (cond
+         ((string=? "wl_compositor" interface)
+          (format #t "Catching compositor!%~")
+          (catch* compositor (apply sway:wrap-binder args)))
+         ((string=? "wl_seat" interface)
+          (catch* seat (apply sway:wrap-binder args)))
+         ((string=? "zwp_input_method_manager_v2" interface)
+          (catch* input-method-manager (apply sway:wrap-binder args)))
+         ((string=? "xdg_wm_base" interface)
+          (catch* xdg-wm-base (apply sway:wrap-binder args)))))
+      #:global-remove
+      (lambda (data registry name)
+        (pk 'remove data registry name)))))
 
 (define (handle-key-press . args)
   "let if be as is for now. but I guess enhanced interception logic needed.
