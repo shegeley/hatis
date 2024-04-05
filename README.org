@@ -288,7 +288,9 @@ kb_keymap {
 #+end_src
 Into multiple hash-maps:
 1. keycodes to "keynames" [number - <AB10>]
-2.
+2. keyname -> group symbol
+** TODO XKB character signature -> utf-8 symbol
+[[https://stackoverflow.com/questions/8970098/how-to-map-a-x11-keysym-to-a-unicode-character][See]]
 ** TODO Add proper stop (+restart should be as a bonus) ability
 For now calling ~cancel-thread~ on the main thread won't "free" the catched/grabbed entities: input-method, keyboard-grab, etc.
 
