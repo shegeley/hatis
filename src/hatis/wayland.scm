@@ -52,6 +52,12 @@
 (define seat
   (make-atomic-box #f))
 
+(define pointer
+  (make-atomic-box #f))
+
+(define touch
+  (make-atomic-box #f))
+
 (define input-method-manager
   (make-atomic-box #f))
 
@@ -89,6 +95,66 @@
 (define (sway:wrap-binder . args)
   (apply wrap-binder (append args (list #:versioning sway:versioning))))
 
+(define touch-listener
+  (make <wl-touch-listener>
+    #:up
+    (lambda args
+      (format #t "up! ~a ~%" args))
+    #:motion
+    (lambda args
+      (format #t "motion! ~a ~%" args))
+    #:down
+    (lambda args
+      (format #t "down! ~a ~%" args))
+    #:frame
+    (lambda args
+      (format #t "frame! ~a ~%" args))
+    #:cancel
+    (lambda args
+      (format #t "cancel! ~a ~%" args))
+    #:shape
+    (lambda args
+      (format #t "shape! ~a ~%" args))
+    #:orientation
+    (lambda args
+      (format #t "orientation! ~a ~%" args))))
+
+(define pointer-listener
+  (make <wl-pointer-listener>
+    #:axis-discrete
+    (lambda args
+      (format #t "axis-discrete! ~a ~%" args))
+    #:axis-value-120
+    (lambda args
+      (format #t "axis-value-120! ~a ~%" args))
+    #:axis-relative-direction
+    (lambda args
+      (format #t "axis-relative-direction! ~a ~%" args))
+    #:axis-stop
+    (lambda args
+      (format #t "axis-stop! ~a ~%" args))
+    #:axis-source
+    (lambda args
+      (format #t "axis-source! ~a ~%" args))
+    #:frame
+    (lambda args
+      (format #t "frame! ~a ~%" args))
+    #:axis
+    (lambda args
+      (format #t "axis! ~a ~%" args))
+    #:button
+    (lambda args
+      (format #t "button! ~a ~%" args))
+    #:motion
+    (lambda args
+      (format #t "motion! ~a ~%" args))
+    #:leave
+    (lambda args
+      (format #t "leave! ~a ~%" args))
+    #:enter
+    (lambda args
+      (format #t "enter! ~a ~%" args))))
+
 (define registry-listener
   (make <wl-registry-listener>
     #:global
@@ -98,10 +164,17 @@
                 interface version name)
         (cond
          ((string=? "wl_compositor" interface)
-          (format #t "Catching compositor!%~")
           (catch* compositor (apply sway:wrap-binder args)))
          ((string=? "wl_seat" interface)
-          (catch* seat (apply sway:wrap-binder args)))
+          (let* [(seat* (apply sway:wrap-binder args))
+                 ;; NOTE: false-if-exception won't work here
+                 ;; it will still catch touch device when on one avalialiable and display error to the arei buffer
+                 ;; TODO: figure out
+                 (pointer* (false-if-exception (wl-seat-get-pointer seat*)))
+                 (touch* (false-if-exception (wl-seat-get-touch seat*)))]
+            (catch* seat seat*)
+            (catch* pointer pointer*)
+            (catch* touch touch*)))
          ((string=? "zwp_input_method_manager_v2" interface)
           (catch* input-method-manager (apply sway:wrap-binder args)))
          ((string=? "xdg_wm_base" interface)
@@ -190,22 +263,30 @@
 (define (listeners)
   "Here listeners is a proc because guile don't have clojure-alike `declare' and listeners are declared after their reference"
   (alist->hash-table
-   `((,<wl-registry> . ,registry-listener)
+   `((,<wl-touch> . ,touch-listener)
+     (,<wl-registry> . ,registry-listener)
+     (,<wl-pointer> . ,pointer-listener)
      (,<zwp-input-method-keyboard-grab-v2> . ,keyboard-grab-listener)
      (,<zwp-input-method-v2> . ,input-method-listener))))
 
 (define* (catch* cage x #:key (listeners listeners))
   (format #t "Catch* ~a into ~a ~%" x cage)
-  (if (ref cage)
-      (release cage x)
-      (begin
-        (reset! cage x)
-        (let [(listener (hash-table-ref
-                         (listeners) ;; ares will fail to eval if this one is not dynamic call
-                         (class-of x)
-                         (const #f)))]
-          (when listener (add-listener x listener))
-          #t))))
+  (cond
+   ;; cage is occupied already
+   ((ref cage)
+    (release cage x))
+    ;; x if false := failed to get it (for example devices won't have touch capability)
+   ((equal? #f x) #f)
+   ;; else
+   (else
+    (begin
+      (reset! cage x)
+      (let [(listener (hash-table-ref
+                       (listeners) ;; ares will fail to eval if this one is not dynamic call
+                       (class-of x)
+                       (const #f)))]
+        (when listener (add-listener x listener))
+        #t)))))
 
 (define (main)
   (catch* display (wl-display-connect))
@@ -252,3 +333,7 @@
 (zwp-input-method-v2-commit-string (ref input-method) "Lorem ipsum")
 (zwp-input-method-v2-commit (ref input-method) 1)
 |#
+
+(ref touch)
+
+(false-if-exception (wl-seat-get-touch (ref seat)))
