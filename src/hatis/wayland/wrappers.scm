@@ -11,6 +11,8 @@
 
   #:use-module (srfi srfi-69) ;; hash-tables
 
+  #:use-module (wayland client protocol wayland)
+
   #:export (wrap-binder
             add-listener))
 
@@ -23,9 +25,9 @@
           #:key ;; + additional key-arguments with defaults
           versioning)
   (let* [(interface- (_->- interface))
-         (wrap-proc (live-load (string-append "wrap-" interface-)))
-         (bind-proc (live-load (string-append "%" interface- "-interface")))]
-    (wrap-proc (bind-proc (hash-table-ref versioning (string->symbol interface-))))))
+         (interface% (live-load (string-append "%" interface- "-interface")))
+         (wrap-proc (live-load (string-append "wrap-" interface-)))]
+    (wrap-proc (wl-registry-bind registry name interface% (hash-table-ref versioning (string->symbol interface-))))))
 
 (define (add-listener x listener)
   (let* [(class (class-of x))
