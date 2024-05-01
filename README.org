@@ -202,8 +202,14 @@ Best case scenario: UI should be described as lisp data structure (xml?) and it 
 ** TODO Security policy (maybe DBUS?)
 Ask @avp (@artyom-poptsov) once again for clarifications. Pairing?
 ** TODO Draft a simple GTK-based UI to show interactive "input-repl" (events in real-time)
+** TODO Q: If wl_pointer + wl_touch are "active" when text-input-method is actiaved?
+By-default input-method allows only keyboard-grab, not pointer or touch grabs.
+Q: Is it realiable to grab them globall (from the given wl_seat) and use during input to build interfaces?
 ** TODO Figure out testing
 How do I test it from non-personal PC? Simulate wayland when being ssh-access only. Will be needed for automations like github actions or something.
+---
+It seems to be possible on very basic level.
+See [[https://github.com/guile-wayland/guile-wayland/blob/master/tests/display.scm][guile-wayland/tests]].
 ** TODO Parse keyboard-events ~uint~ with ~guile-libxkbcommon~ (or ~guile-libinput~?)
 What's ment by parsing? Turn key serial (unit) into ... what? xkb "entry"?
 
