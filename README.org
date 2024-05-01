@@ -7,7 +7,7 @@ This project is inspired by very same idea: catch the text-input context globall
 
 In GUI it's possible to "catch input context" using [[https://wayland.app/protocols/input-method-unstable-v2][Wayland::InputMethod]]
 
-It should also be possible on pure-tty with gettext or something.
+It should also be possible on pure-tty with [[https://directory.fsf.org/wiki/Readline][readline]] or something.
 
 The system should be very hackable. That's why it's written in lisp (Guile Scheme to interact with Guix System flawlessly).
 * Core idea
