@@ -105,8 +105,11 @@ guix shell guile-next guile-ares-rs -f guix.scm \
 and them eval ~((@ (nrepl server) run-nrepl-server) #:port 7888)~
 
 It will work then. I don't know why ~-c~ flag sometimes gives this behavior.
-
-UPDATE: created separate repl module. ~(nrepl server)~ won't load from module with just ~#:use-module~, only ~#:autoload~.
+---
+Possible workaround: created separate repl module.
+Note: ~(nrepl server)~ won't load from module with just ~#:use-module~, only ~#:autoload~.
+---
+Note: it's stopped since I've moved to Makefile
 ** ~(oop goops describe)~ dumps examples
 Class introspecrion:
 #+begin_src scheme
