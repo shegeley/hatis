@@ -76,6 +76,13 @@ there is even no "user" yet. btw "user" should also be defined in the context of
 
   You can also launch it on native sway but as I'm still experimenting with keyboard grabbing and "dangerous" stuff like this you might end up loosing the control completely and having to restart the machine.
 * Notes
+** On ~wl_seat~ and it's capabilities
+~(wl-seat-get-...)~ (touch/pointer/keyboard) can be called even when there is no relatable capability (when there is no touch devices, for example)
+
+it will cause "silent error": it will be written in a console, that there are no capability, but no exception will be thrown, so it's not possible to catch it with
+~(with-exception-handler ...)~. and it will, in fact "return" ~wl-touch~ object. althought it will be "broken".
+
+workaround is to always ~(extract-capabilities ...)~ and only "do things" after getting the
 ** ~guile-ares-rs~ ~(nrepl server)~ problems with loading
 I've met a strange problem when tried to ~arei-connect~ + ~arei-eval-buffer~ with
 #+begin_src sh
