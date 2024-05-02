@@ -71,7 +71,7 @@ there is even no "user" yet. btw "user" should also be defined in the context of
 - Emacs + [[https://git.sr.ht/~abcdw/guile-ares-rs][Ares]]/[[xhttps://git.sr.ht/~abcdw/emacs-arei][Arei]]
 - Guix System
 - Gnome on Wayland as primary WM
-- Sway launched in command line ("wm in a window"); from there I launch repl with ~bash repl.sh~ and I interact with it on Gnome with ~arei~
+- Sway launched in command line ("wm in a window"); from there I launch repl with ~make repl~ and I interact with it on Gnome with ~arei~
 - Programm writes dev/debug events to "output.txt"; can be read with ~tail -f output.txt | nl~
 
   You can also launch it on native sway but as I'm still experimenting with keyboard grabbing and "dangerous" stuff like this you might end up loosing the control completely and having to restart the machine.
@@ -2416,7 +2416,7 @@ From:
 ** DONE Catch text-input context's surface (~get_input_popup_surface~)
 I don't understand how helpfull is it not, but I bet it will be needed later to display proper custom UIs
 ** DONE Use ~guile-ares~ intead of ~geiser~
-See repl.sh
+See ~makeile:repl~
 * Questions
 ** Do I need to create sepate virtual keyboard when grabbing the input?
 For what? Kinda hotswap?

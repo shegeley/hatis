@@ -155,6 +155,15 @@
     (lambda args
       (format #t "enter! ~a ~%" args))))
 
+(define seat-listener
+  (make <wl-seat-listener>
+    #:name
+    (lambda args
+      (format #t "seat:name ~a ~%" args))
+    #:capabilities
+    (lambda args
+      (format #t "seat:capabilities ~a ~%" args))))
+
 (define registry-listener
   (make <wl-registry-listener>
     #:global
