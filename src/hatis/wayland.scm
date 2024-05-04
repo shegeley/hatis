@@ -177,26 +177,20 @@
       (match-let* [((data registry name interface version) args)]
         (format #t "interface: '~a', version: ~a, name: ~a ~%"
                 interface version name)
-        (cond
-         ((string=? "wl_compositor" interface)
-          (catch* compositor (apply sway:wrap-binder args)))
-         ((string=? "wl_seat" interface)
-          (let* [(seat* (apply sway:wrap-binder args))
-                 ;; NOTE: false-if-exception won't work here
-                 ;; it will still catch touch device when on one avalialiable and display error to the arei buffer
-                 ;; TODO: figure out
-                 (pointer* (false-if-exception (wl-seat-get-pointer seat*)))
-                 (touch* (false-if-exception (wl-seat-get-touch seat*)))]
-            (catch* seat seat*)
-            (catch* pointer pointer*)
-            (catch* touch touch*)))
-         ((string=? "zwp_input_method_manager_v2" interface)
-          (catch* input-method-manager (apply sway:wrap-binder args)))
-         ((string=? "xdg_wm_base" interface)
-          (catch* xdg-wm-base (apply sway:wrap-binder args)))))
-      #:global-remove
+        (when (member interface '("wl_compositor" "wl_seat" "zwp_input_method_manager_v2" "xdg_wm_base"))
+          (let [(wrapped (apply sway:wrap-binder args))]
+            (cond
+             ((string=? "wl_compositor" interface)
+              (catch* compositor wrapped))
+             ((string=? "wl_seat" interface)
+              (catch* seat wrapped))
+             ((string=? "zwp_input_method_manager_v2" interface)
+              (catch* input-method-manager wrapped))
+             ((string=? "xdg_wm_base" interface)
+              (catch* xdg-wm-base wrapped)))))))
+    #:global-remove
       (lambda (data registry name)
-        (pk 'remove data registry name)))))
+        (pk 'remove data registry name))))
 
 (define (handle-key-press . args)
   "let if be as is for now. but I guess enhanced interception logic needed.
@@ -349,7 +343,3 @@
 (zwp-input-method-v2-commit-string (ref input-method) "Lorem ipsum")
 (zwp-input-method-v2-commit (ref input-method) 1)
 |#
-
-(ref touch)
-
-(false-if-exception (wl-seat-get-touch (ref seat)))
