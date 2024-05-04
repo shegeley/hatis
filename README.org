@@ -169,8 +169,26 @@ Object introspection:
 Slots are:
      %pointer = #<pointer 0x7f0947686e20>
 #+end_src
+Also:
+#+begin_src scheme
+(use-modules (oop goops describe))
+
+(describe (make <zwp-input-method-keyboard-grab-v2-listener>))
+#+end_src
+
+#+begin_src
+#<unspecified>
+#<<zwp-input-method-keyboard-grab-v2-listener> 7efd1b1bf0f0> is an instance of class <zwp-input-method-keyboard-grab-v2-listener>
+Slots are:
+     %pointer = #<pointer 0x7efd24505960>
+     keymap = #<pointer 0x0>
+     key = #<pointer 0x0>
+     modifiers = #<pointer 0x0>
+     repeat-info = #<pointer 0x0>
+#+end_src
 ---
 It doesn't seems much usefull for now.
+
 ** [[https://wayland.app/protocols/text-cursor-position][Weston Unstable text cursor position]]
 Might be "the hiden key to everything" (getting + saving text-input context). At least it "knows" it's surface.
 ** Context of input method protocol
