@@ -7,6 +7,7 @@
   #:use-module (wayland client protocol xdg-shell)
 
   #:use-module ((hatis sway) #:prefix sway:)
+  #:use-module (hatis wayland seat)
   #:use-module (hatis wayland keyboard)
   #:use-module (hatis wayland wrappers)
 
@@ -157,12 +158,17 @@
 
 (define seat-listener
   (make <wl-seat-listener>
-    #:name
-    (lambda args
-      (format #t "seat:name ~a ~%" args))
-    #:capabilities
-    (lambda args
-      (format #t "seat:capabilities ~a ~%" args))))
+    #:name (lambda args (format #t "seat:name ~a ~%" args))
+    #:capabilities (lambda (_1 _2 x)
+                     (let [(capabilities (extract-capabilities x))]
+                       ;; not sure if i need to do something with pointer/touch/keyboard now
+                       ;; or only when keyboard is catched
+                       (cond ((member 'keyboard capabilities)
+                              (format #t "Do something with keyboard ~%"))
+                             ((member 'touch capabilities)
+                              (format #t "Do something with touch ~%"))
+                             ((member 'pointer capabilities)
+                              (format #t "Do something with pointer %~")))))))
 
 (define registry-listener
   (make <wl-registry-listener>
@@ -272,7 +278,8 @@
 (define (listeners)
   "Here listeners is a proc because guile don't have clojure-alike `declare' and listeners are declared after their reference"
   (alist->hash-table
-   `((,<wl-touch> . ,touch-listener)
+   `((,<wl-seat> . ,seat-listener)
+     (,<wl-touch> . ,touch-listener)
      (,<wl-registry> . ,registry-listener)
      (,<wl-pointer> . ,pointer-listener)
      (,<zwp-input-method-keyboard-grab-v2> . ,keyboard-grab-listener)
