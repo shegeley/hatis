@@ -79,10 +79,9 @@ there is even no "user" yet. btw "user" should also be defined in the context of
 ** On ~wl_seat~ and it's capabilities
 ~(wl-seat-get-...)~ (touch/pointer/keyboard) can be called even when there is no relatable capability (when there is no touch devices, for example)
 
-it will cause "silent error": it will be written in a console, that there are no capability, but no exception will be thrown, so it's not possible to catch it with
-~(with-exception-handler ...)~. and it will, in fact "return" ~wl-touch~ object. althought it will be "broken".
+it will cause "sneaky error": it will be written in a console, that there are no capability, but no exception will be thrown, so it's not possible to catch it with ~(with-exception-handler ...)~. and it will, in fact "return" ~wl-touch~ object. althought it will be "broken".
 
-workaround is to always ~(extract-capabilities ...)~ and only "do things" after getting the
+workaround is to always ~(extract-capabilities ...)~ and only "do things" after getting the exact capabilities. also know: capabilities might change directly (disconnect the keyboard/mouse), so the should also be updated and refered each time. never assume constance.
 ** ~guile-ares-rs~ ~(nrepl server)~ problems with loading
 I've met a strange problem when tried to ~arei-connect~ + ~arei-eval-buffer~ with
 #+begin_src sh
@@ -170,6 +169,39 @@ Slots are:
      %pointer = #<pointer 0x7f0947686e20>
 #+end_src
 Also:
+#+begin_src scheme
+(use-modules (oop goops describe))
+
+(describe <zwp-input-method-keyboard-grab-v2-listener>)
+#+end_src
+
+#+begin_src
+<zwp-input-method-keyboard-grab-v2-listener> is a class. It's an instance of <bytestructure-class>
+Superclasses are:
+    <bs>
+Directs slots are:
+    keymap
+    key
+    modifiers
+    repeat-info
+(No direct subclass)
+Class Precedence List is:
+    <zwp-input-method-keyboard-grab-v2-listener>
+    <bs>
+    <object>
+    <top>
+Class direct methods are:
+    Method #<<method> (<zwp-input-method-keyboard-grab-v2-listener> <top>) 7efd24a60e00>
+	     Generic: initialize
+	Specializers: <zwp-input-method-keyboard-grab-v2-listener> <top>
+    Method #<<accessor-method> (<zwp-input-method-keyboard-grab-v2-listener> <top>) 7efd24a60e40>
+	     Generic: setter:bs-pointer
+	Specializers: <zwp-input-method-keyboard-grab-v2-listener> <top>
+    Method #<<accessor-method> (<zwp-input-method-keyboard-grab-v2-listener>) 7efd24a60e80>
+	     Generic: bs-pointer
+	Specializers: <zwp-input-method-keyboard-grab-v2-listener>
+#+end_src
+
 #+begin_src scheme
 (use-modules (oop goops describe))
 
