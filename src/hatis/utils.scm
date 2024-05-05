@@ -1,10 +1,17 @@
 (define-module (hatis utils)
   #:use-module (rnrs bytevectors)
 
+  #:use-module (ice-9 match)
+  #:use-module (ice-9 format)
   #:use-module (ice-9 string-fun)
   #:use-module (ice-9 binary-ports)
 
-  #:export (read-string-from-fd _->- live-load))
+  #:use-module (srfi srfi-1)
+
+  #:export (read-string-from-fd
+            _->- live-load
+            even-list->alist
+            alist->even-list))
 
 (define (read-string-from-fd fd)
   (call-with-port (fdopen fd "rb")
@@ -18,3 +25,15 @@
    module
    (cond ((string? x) (string->symbol x))
          ((symbol? x) x))))
+
+(define (even-list->alist list)
+  (match list
+    ('() '())
+    ((a) (error (format #f "~a is not an even list! ~%" list)))
+    ((a b) `((,a . ,b)))
+    ((a b c ...) (alist-cons a b (even-list->alist c)))))
+
+(define alist->even-list
+  (match-lambda
+    ('() '())
+    (((a . b) rest ...) (append (list a b) (alist->even-list rest)))))
