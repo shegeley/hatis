@@ -4,17 +4,18 @@
   It autogenerates bindings + wrappers on the fly "dispatching" by object's class or else
   |#
 
-  #:use-module ((hatis utils)
-                #:select (live-load _->-))
+  #:use-module (hatis utils)
+
+  #:use-module ((wayland client protocol wayland)
+                #:select (wl-registry-bind))
 
   #:use-module (oop goops)
 
   #:use-module (srfi srfi-69) ;; hash-tables
 
-  #:use-module (wayland client protocol wayland)
+  #:use-module (srfi srfi-1)
 
-  #:export (wrap-binder
-            add-listener))
+  #:export (wrap-binder add-listener make-listener))
 
 (define* (wrap-binder ;; just duplicate #:global registry listener arguments
           data
@@ -26,8 +27,11 @@
           versioning)
   (let* [(interface- (_->- interface))
          (interface% (live-load (string-append "%" interface- "-interface")))
-         (wrap-proc (live-load (string-append "wrap-" interface-)))]
-    (wrap-proc (wl-registry-bind registry name interface% (hash-table-ref versioning (string->symbol interface-))))))
+         (wrap-proc (live-load (string-append "wrap-" interface-)))
+         (version (hash-table-ref versioning ;; default version is 1
+                                  (string->symbol interface-)
+                                  (const 1)))]
+    (wrap-proc (wl-registry-bind registry name interface% version))))
 
 (define (add-listener x listener)
   (let* [(class (class-of x))
@@ -41,3 +45,42 @@
          (name (get-name class))
          (add-listener-proc (live-load (symbol-append name '-add-listener)))]
     (add-listener-proc x listener)))
+
+(define default-event-handler
+  (lambda (listener-class event-name args)
+    (format #t "Event ~a/~a called with args ~a ~%"
+            (class-name listener-class)
+            (keyword->symbol event-name) args)))
+
+(define* (make-listener class
+                        #:optional (args '())
+                        #:key (event-handler default-event-handler))
+  "A simple wrapper around default guile-wayland's 'make' initializer to set all listener's handlers to default on on init no to set them all manually.
+
+  @code{event-handler} is a procedure of 3 arguments: listener-class (goops class), event-name (keyword), args (list of event arguments)
+
+  @example
+  (make <wl-touch-listener>
+      #:up (lambda args (format #t \"up! ~a ~%\" args))
+      #:motion (lambda args (format #t \"motion! ~a ~%\" args))
+      #:down (lambda args (format #t \"down! ~a ~%\" args))
+      ;; all the events must have handlers or it will cause an error
+      ;; in wayland event loop
+      ...))
+  =>
+  (make-listener <wl-touch-listener>)
+  @end example"
+  (let* [(events (filter-map
+                  (lambda (x)
+                    (let [(kw (slot-definition-init-keyword x))]
+                      (if (not (equal? kw #:%pointer)) kw #f)))
+                  (class-slots class)))
+         (events-hash-table (alist->hash-table (even-list->alist args)))
+         (_  (map (lambda (e)
+                    (cond
+                     ((hash-table-exists? events-hash-table e) #f)
+                     (else (hash-table-set!
+                            events-hash-table e
+                            (lambda args* (default-event-handler class e args*)))))) events))
+         (args* (alist->even-list (hash-table->alist events-hash-table)))]
+    (apply make class args*)))
