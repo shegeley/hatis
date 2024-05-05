@@ -259,6 +259,8 @@ Input-popup-surface is another breed. Won't cast to any other.
 * TODOS
 ** TODO Draft a simple GTK-based UI to show on text-input
 Best case scenario: UI should be described as lisp data structure (xml?) and it should be possible to "resolve" it structure with different custom "resolvers" for gtk, qt, etc.
+** TODO Figure out why do I have to supply versioning directly ~(hatis sway)~ :wayland:versioning:
+Why won't versioning info be parsed from the xml directly. Need to look at guile-wayland source code.
 ** TODO Security policy (maybe DBUS?)
 Ask @avp (@artyom-poptsov) once again for clarifications. Pairing?
 ** TODO Draft a simple GTK-based UI to show interactive "input-repl" (events in real-time)
