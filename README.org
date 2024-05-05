@@ -275,8 +275,6 @@ See [[https://github.com/guile-wayland/guile-wayland/blob/master/tests/display.s
 ** TODO Parse keyboard-events ~uint~ with ~guile-libxkbcommon~ (or ~guile-libinput~?)
 What's ment by parsing? Turn key serial (unit) into ... what? xkb "entry"?
 
-** TODO Catch [[https://wayland.app/protocols/wayland#wl_touch][wl_touch]]
-For now just create default listener that will simply print events
 ** TODO Catch clipboard (~wl_data_control/source~ + ~wl_primary_selection~ or something)
 For now just create default listener that will simply print events
 ---
@@ -285,8 +283,6 @@ See:
 1. https://emersion.fr/blog/2020/wayland-clipboard-drag-and-drop/
 2. https://wayland.app/protocols/primary-selection-unstable-v1
 3. https://wayland.app/protocols/wlr-data-control-unstable-v1
-** TODO Catch [[https://wayland.app/protocols/wayland#wl_pointer][wl_pointer]]
-For now just create default listener that will simply print events
 ** TODO Get "window manager context" (see definitions) (~app_id~ + ~pid~ & etc)
 There is no "unified" way of doing this in all Wayland implementationsthis because it's not Wayland's responsibility in general.
 
@@ -387,6 +383,10 @@ The protocol:
 - does not guarantee that events sent to this client are exhaustive, a compositor may filter some events for its own consumption,
 - does not guarantee that events sent to this client are continuous, a compositor may change and reroute keyboard events while the grab is nominally active.
 #+end_quote
+** DONE Catch [[https://wayland.app/protocols/wayland#wl_pointer][wl_pointer]]
+For now just create default listener that will simply print events
+** DONE Catch [[https://wayland.app/protocols/wayland#wl_touch][wl_touch]]
+For now just create default listener that will simply print events
 ** DONE Try distinguish text-input context via it's popup surface
 :PROPERTIES:
 :ID:       6759d3ce-3027-452e-b95c-d420b89d7394
