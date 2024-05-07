@@ -97,100 +97,46 @@
   (apply wrap-binder (append args (list #:versioning sway:versioning))))
 
 (define touch-listener
-  (make <wl-touch-listener>
-    #:up
-    (lambda args
-      (format #t "up! ~a ~%" args))
-    #:motion
-    (lambda args
-      (format #t "motion! ~a ~%" args))
-    #:down
-    (lambda args
-      (format #t "down! ~a ~%" args))
-    #:frame
-    (lambda args
-      (format #t "frame! ~a ~%" args))
-    #:cancel
-    (lambda args
-      (format #t "cancel! ~a ~%" args))
-    #:shape
-    (lambda args
-      (format #t "shape! ~a ~%" args))
-    #:orientation
-    (lambda args
-      (format #t "orientation! ~a ~%" args))))
+  (make-listener <wl-touch-listener>))
 
 (define pointer-listener
-  (make <wl-pointer-listener>
-    #:axis-discrete
-    (lambda args
-      (format #t "axis-discrete! ~a ~%" args))
-    #:axis-value-120
-    (lambda args
-      (format #t "axis-value-120! ~a ~%" args))
-    #:axis-relative-direction
-    (lambda args
-      (format #t "axis-relative-direction! ~a ~%" args))
-    #:axis-stop
-    (lambda args
-      (format #t "axis-stop! ~a ~%" args))
-    #:axis-source
-    (lambda args
-      (format #t "axis-source! ~a ~%" args))
-    #:frame
-    (lambda args
-      (format #t "frame! ~a ~%" args))
-    #:axis
-    (lambda args
-      (format #t "axis! ~a ~%" args))
-    #:button
-    (lambda args
-      (format #t "button! ~a ~%" args))
-    #:motion
-    (lambda args
-      (format #t "motion! ~a ~%" args))
-    #:leave
-    (lambda args
-      (format #t "leave! ~a ~%" args))
-    #:enter
-    (lambda args
-      (format #t "enter! ~a ~%" args))))
+  (make-listener <wl-pointer-listener>))
 
 (define seat-listener
-  (make <wl-seat-listener>
-    #:name (lambda args (format #t "seat:name ~a ~%" args))
-    #:capabilities (lambda (_1 _2 x)
-                     (let [(capabilities (extract-capabilities x))]
-                       ;; not sure if i need to do something with pointer/touch/keyboard now
-                       ;; or only when keyboard is catched
-                       (cond ((member 'keyboard capabilities)
-                              (format #t "Do something with keyboard ~%"))
-                             ((member 'touch capabilities)
-                              (format #t "Do something with touch ~%"))
-                             ((member 'pointer capabilities)
-                              (format #t "Do something with pointer %~")))))))
+  (make-listener <wl-seat-listener>
+                 (list #:name (lambda args (format #t "seat:name ~a ~%" args))
+                       #:capabilities (lambda (_1 _2 x)
+                                        (let [(capabilities (extract-capabilities x))]
+                                          ;; not sure if i need to do something with pointer/touch/keyboard now
+                                          ;; or only when keyboard is catched
+                                          (cond ((member 'keyboard capabilities)
+                                                 (format #t "Do something with keyboard ~%"))
+                                                ((member 'touch capabilities)
+                                                 (format #t "Do something with touch ~%"))
+                                                ((member 'pointer capabilities)
+                                                 (format #t "Do something with pointer %~"))))))))
 
 (define registry-listener
-  (make <wl-registry-listener>
-    #:global
-    (lambda* args
-      (match-let* [((data registry name interface version) args)]
-        (format #t "interface: '~a', version: ~a, name: ~a ~%"
-                interface version name)
-        (when (member interface '("wl_compositor" "wl_seat" "zwp_input_method_manager_v2" "xdg_wm_base"))
-          (let [(wrapped (apply sway:wrap-binder args))]
-            (cond
-             ((string=? "wl_compositor" interface)
-              (catch* compositor wrapped))
-             ((string=? "wl_seat" interface)
-              (catch* seat wrapped))
-             ((string=? "zwp_input_method_manager_v2" interface)
-              (catch* input-method-manager wrapped))
-             ((string=? "xdg_wm_base" interface)
-              (catch* xdg-wm-base wrapped)))))))
-    #:global-remove
-      (lambda (data registry name)
-        (pk 'remove data registry name))))
+  (make-listener <wl-registry-listener>
+    (list #:global
+          (lambda* args
+            (match-let* [((data registry name interface version) args)]
+              (format #t "interface: '~a', version: ~a, name: ~a ~%"
+                      interface version name)
+              (when (member interface '("wl_compositor" "wl_seat" "zwp_input_method_manager_v2" "xdg_wm_base"))
+                (let [(wrapped (apply sway:wrap-binder args))]
+                  (cond
+                   ((string=? "wl_compositor" interface)
+                    (catch* compositor wrapped))
+                   ((string=? "wl_seat" interface)
+                    (catch* seat wrapped))
+                   ((string=? "zwp_input_method_manager_v2" interface)
+                    (catch* input-method-manager wrapped))
+                   ((string=? "xdg_wm_base" interface)
+                    (catch* xdg-wm-base wrapped)))))))
+          #:global-remove
+          (lambda (data registry name)
+            (pk 'remove data registry name)))))
 
 (define (handle-key-press . args)
   "let if be as is for now. but I guess enhanced interception logic needed.
@@ -205,69 +151,36 @@
   )
 
 (define keyboard-grab-listener
-  (make <zwp-input-method-keyboard-grab-v2-listener>
-    #:release
-    (lambda args
-      (format #t "release! args: ~a ~%" args))
-    #:keymap
-    (lambda args
-      (format #t "keymap! args: ~a ~%" args)
-      (catch* keymap (apply get-keymap (drop args 2))))
-    #:modifiers
-    (lambda args
-      (format #t "modifiers! args: ~a ~%" args))
-    #:repeat-info
-    (lambda args
-      (format #t "repeat-info! args: ~a ~%" args))
-    #:key handle-key-press))
+  (make-listener <zwp-input-method-keyboard-grab-v2-listener>
+                 (list #:keymap
+                       (lambda args
+                         (format #t "keymap! args: ~a ~%" args)
+                         (catch* keymap (apply get-keymap (drop args 2))))
+                       #:key handle-key-press)))
 
 (define input-method-listener
-  (make <zwp-input-method-v2-listener>
-    #:text-change-cause
-    (lambda args
-      (format #t "cause! args: ~a ~%" args))
-    #:content-type
-    (lambda args
-      (format #t "content-type! args: ~a ~%" args))
-    #:surrounding-text
-    (lambda args
-      (format #t "surrounding! args: ~a ~%" args))
-    #:unavailable
-    (lambda args
-      (format #t "unavailable! args: ~a ~%" args))
-    #:done
-    (lambda args
-      (format #t "done! args: ~a ~%" args))
-    #:commit-string
-    (lambda args
-      (format #t "commit! args: ~a ~%" args))
-    #:activate
-    (lambda (_ im)
-      (format #t "activate! im: ~a ~%" im)
-      ;; NOTE: need to grab keyboard + input surface
+  (make-listener <zwp-input-method-v2-listener>
+                 (list #:activate
+                       (lambda (_ im)
+                         (format #t "activate! im: ~a ~%" im)
+                         ;; NOTE: need to grab keyboard + input surface
 
-      ;; Catch* surface
-      (catch*
-        input-surface
-        (wl-compositor-create-surface (ref compositor)))
+                         ;; Catch* surface
+                         (catch* input-surface (wl-compositor-create-surface (ref compositor)))
 
-      (catch*
-        ;; popup-input-surface won't cast to xdg-surface
-        ;; (xdg-input-surface (xdg-wm-base-get-xdg-surface (xdg-wm-base) (input-surface)))
-        ;; ERROR: «not a <wl-surface> or #f #<<zwp-input-popup-surface-v2> 7efd12918c80>»
-        input-surface
-        (zwp-input-method-v2-get-input-popup-surface im (ref input-surface)))
+                         ;; popup-input-surface won't cast to xdg-surface
+                         ;; (xdg-input-surface (xdg-wm-base-get-xdg-surface (xdg-wm-base) (input-surface)))
+                         ;; ERROR: «not a <wl-surface> or #f #<<zwp-input-popup-surface-v2> 7efd12918c80>»
 
-      ;; Grab keyboard
-      (catch*
-        keyboard
-        (zwp-input-method-v2-grab-keyboard im)))
-    #:deactivate
-    (lambda args
-      (format #t "leave! args: ~a ~%" args)
-      ;; Release keyboard NEEDED?
-      ;; (zwp-input-method-keyboard-grab-v2-release (keyboard))
-      )))
+                         (catch* input-surface (zwp-input-method-v2-get-input-popup-surface im (ref input-surface)))
+
+                         ;; Grab keyboard
+                         (catch* keyboard (zwp-input-method-v2-grab-keyboard im)))
+                       #:deactivate
+                       (lambda args
+                         ;; Release keyboard NEEDED?
+                         ;; (zwp-input-method-keyboard-grab-v2-release (keyboard))
+                         (format #t "leave! args: ~a ~%" args)))))
 
 (define (listeners)
   "Here listeners is a proc because guile don't have clojure-alike `declare' and listeners are declared after their reference"
