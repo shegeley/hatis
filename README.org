@@ -272,6 +272,8 @@ How do I test it from non-personal PC? Simulate wayland when being ssh-access on
 ---
 It seems to be possible on very basic level.
 See [[https://github.com/guile-wayland/guile-wayland/blob/master/tests/display.scm][guile-wayland/tests]].
+---
+Also learn how the sway, mutter and etc themselfs are tested
 ** TODO Parse keyboard-events ~uint~ with ~guile-libxkbcommon~ (or ~guile-libinput~?)
 What's ment by parsing? Turn key serial (unit) into ... what? xkb "entry"?
 
