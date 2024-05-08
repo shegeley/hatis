@@ -82,6 +82,8 @@ there is even no "user" yet. btw "user" should also be defined in the context of
 it will cause "sneaky error": it will be written in a console, that there are no capability, but no exception will be thrown, so it's not possible to catch it with ~(with-exception-handler ...)~. and it will, in fact "return" ~wl-touch~ object. althought it will be "broken".
 
 workaround is to always ~(extract-capabilities ...)~ and only "do things" after getting the exact capabilities. also know: capabilities might change directly (disconnect the keyboard/mouse), so the should also be updated and refered each time. never assume constance.
+** Keyboard grab and wl_pointer/touch listeners
+When keyboard is grabbed wl_pointer listener won't signal it's events althought the pointer is moving. Figure out why. Is it a ~guile-wayland~ flaw or it's how wayland works.
 ** ~guile-ares-rs~ ~(nrepl server)~ problems with loading
 I've met a strange problem when tried to ~arei-connect~ + ~arei-eval-buffer~ with
 #+begin_src sh
