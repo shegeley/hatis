@@ -10,12 +10,12 @@
   #:use-module (hatis wayland seat)
   #:use-module (hatis wayland keyboard)
   #:use-module (hatis wayland wrappers)
+  #:use-module (hatis utils)
 
   #:use-module (fibers)
   #:use-module (fibers channels)
 
   #:use-module (srfi srfi-1) ;; list base
-  #:use-module (srfi srfi-69) ;; hash-tables
 
   #:use-module (ice-9 match)
   #:use-module (ice-9 format)
@@ -23,17 +23,6 @@
   #:use-module (ice-9 atomic)
 
   #:use-module (oop goops))
-
-;; clojure-alike atomic-box interfaces
-(define (reset! cage val)
-  (atomic-box-set! cage val))
-
-(define (ref cage)
-  (atomic-box-ref cage))
-
-(define (update cage f)
-  (reset! cage (f (ref cage))))
-;; end
 
 (define (current-desktop)
   (getenv "XDG_CURRENT_DESKTOP"))
