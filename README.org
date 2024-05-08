@@ -276,6 +276,19 @@ It seems to be possible on very basic level.
 See [[https://github.com/guile-wayland/guile-wayland/blob/master/tests/display.scm][guile-wayland/tests]].
 ---
 Also learn how the sway, mutter and etc themselfs are tested
+** TODO Rewrite ~catch*~ & introduce ~state~ as ~(atomic-box (hash-map ...))~
+Something like:
+#+begin_src scheme
+(define state (make-atomic-box (make-hash-map)))
+
+(define* (catch* x #:key (listeners listeners)
+                   #:key (state state))
+  (cond ((ref cage) (release cage x))
+        ((equal? #f x) #f)
+        (else ;; something like this, below
+         (assoc-in! state (list 'interfaces (class-name (class x))) x)
+         ...)))
+#+end_src
 ** TODO Parse keyboard-events ~uint~ with ~guile-libxkbcommon~ (or ~guile-libinput~?)
 What's ment by parsing? Turn key serial (unit) into ... what? xkb "entry"?
 
