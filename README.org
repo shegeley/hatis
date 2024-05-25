@@ -76,6 +76,12 @@ there is even no "user" yet. btw "user" should also be defined in the context of
 
   You can also launch it on native sway but as I'm still experimenting with keyboard grabbing and "dangerous" stuff like this you might end up loosing the control completely and having to restart the machine.
 * Notes
+** On state management
+As an ex-clojureist I see state as an atom contaning hash-map with hooks (add/remove-watch). That's how it should be managed in this project.
+
+Unfortunately guile scheme still doesn't have clojure-alike interfaces for associative structures (get, get-in, assoc, assoc-in, update, update-in) and atomics (reset!, swap!, update, add/remove-watch).
+
+It's not the first time when I've met the lack of it very painfull. So I have to [[id:fb08185a-645e-4203-96a3-11ddecc5f1f6][write one]] when working on this project.
 ** On ~wl_seat~ and it's capabilities
 ~(wl-seat-get-...)~ (touch/pointer/keyboard) can be called even when there is no relatable capability (when there is no touch devices, for example)
 
@@ -259,6 +265,13 @@ For now X support is not a priority. XWayland also has keyboard grab support. Se
 Input-popup-surface is another breed. Won't cast to any other.
 ** [[httphttps://github.com/swaywm/wlroots/blob/master/examples/input-method.c][input-method usage example from swaywm]]
 * TODOS
+** TODO Setup clojure-alike state-management
+:PROPERTIES:
+:ID:       fb08185a-645e-4203-96a3-11ddecc5f1f6
+:END:
+Pack clojure-alike interfaces for associative structures in a separate package and add it in the project
+get, get-in, assoc, assoc-in, update, update-in
+reset!, swap! update,
 ** TODO Draft a simple GTK-based UI to show on text-input
 Best case scenario: UI should be described as lisp data structure (xml?) and it should be possible to "resolve" it structure with different custom "resolvers" for gtk, qt, etc.
 ** TODO Figure out why do I have to supply versioning directly ~(hatis sway)~ :wayland:versioning:
