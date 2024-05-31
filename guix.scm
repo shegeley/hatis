@@ -23,7 +23,10 @@
  (gnu packages pkg-config)
  (gnu packages texinfo)
  (gnu packages file)
- (gnu packages build-tools))
+ (gnu packages build-tools)
+
+ (packages srfi srfi-125)
+ (packages clojureism))
 
 (define-public wlroots
   ;; NOTE: had to rewrite to export XML protocols to reference them later
@@ -225,7 +228,9 @@ bs:unknow, cstring-pointer*, bs:enum, stdbool.")
     (build-system guile-build-system)
     (version "0.0.1-alpha")
     (propagated-inputs (list
-                        guile-wayland))
+                         guile-wayland
+                         clojureism
+                         guile-srfi-125))
     (inputs (list
              guile-fibers
              guile-3.0-latest))))
