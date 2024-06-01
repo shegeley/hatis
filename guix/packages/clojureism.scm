@@ -12,8 +12,8 @@
   #:use-module (packages srfi srfi-125))
 
 (define-public clojureism
- (let [(version "0.0.1")
-       (hash "0gih45bx61vhnpl8bbmw3sxzfz4nxd2wm6qpm43xkfxn3kr2ajdj")]
+ (let [(version "0.0.2")
+       (hash "0pjr0m937kz1skx1yivwnpjfqg3jppsv19pyzlfd6skcs0dq6790")]
   (package
    (name "clojureism")
    (version version)
