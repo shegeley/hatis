@@ -6,14 +6,14 @@
 
   #:use-module (hatis utils)
 
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-125)
+
   #:use-module ((wayland client protocol wayland)
                 #:select (wl-registry-bind))
 
+  #:use-module ((clojureism) #:hide (make))
   #:use-module (oop goops)
-
-  #:use-module (srfi srfi-69) ;; hash-tables
-
-  #:use-module (srfi srfi-1)
 
   #:export (wrap-binder add-listener make-listener))
 
@@ -28,9 +28,9 @@
   (let* [(interface- (_->- interface))
          (interface% (live-load (string-append "%" interface- "-interface")))
          (wrap-proc (live-load (string-append "wrap-" interface-)))
-         (version (hash-table-ref versioning ;; default version is 1
+         (version (get versioning ;; default version is 1
                                   (string->symbol interface-)
-                                  (const 1)))]
+                                  1))]
     (wrap-proc (wl-registry-bind registry name interface% version))))
 
 (define (add-listener x listener)
@@ -75,7 +75,7 @@
                     (let [(kw (slot-definition-init-keyword x))]
                       (if (not (equal? kw #:%pointer)) kw #f)))
                   (class-slots class)))
-         (events-hash-table (alist->hash-table (even-list->alist args)))
+         (events-hash-table (alist->hash-table (even-list->alist args) equal?))
          (_  (map (lambda (e)
                     (cond
                      ((hash-table-exists? events-hash-table e) #f)
