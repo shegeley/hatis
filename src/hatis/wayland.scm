@@ -16,6 +16,9 @@
   #:use-module (fibers channels)
 
   #:use-module (srfi srfi-1) ;; list base
+  #:use-module (srfi srfi-125) ;; hash-tables
+
+  #:use-module (clojureism)
 
   #:use-module (ice-9 match)
   #:use-module (ice-9 format)
@@ -75,10 +78,11 @@
 (define (releasers)
   (alist->hash-table
    `((,<zwp-input-method-manager-v2> . ,zwp-input-method-manager-v2-destroy)
-     (,<zwp-input-method-v2> . ,zwp-input-method-v2-destroy))))
+      (,<zwp-input-method-v2> . ,zwp-input-method-v2-destroy))
+    equal?))
 
 (define* (release cage x #:key (releasers releasers))
-  (let [(release (hash-table-ref (releasers) (class-of x) (const #f)))]
+  (let [(release (get (releasers) (class-of x)))]
     (when release (release x))
     (reset! cage #f)))
 
@@ -179,7 +183,8 @@
      (,<wl-registry> . ,registry-listener)
      (,<wl-pointer> . ,pointer-listener)
      (,<zwp-input-method-keyboard-grab-v2> . ,keyboard-grab-listener)
-     (,<zwp-input-method-v2> . ,input-method-listener))))
+      (,<zwp-input-method-v2> . ,input-method-listener))
+    equal?))
 
 (define* (catch* cage x #:key (listeners listeners))
   (format #t "Catch* ~a into ~a ~%" x cage)
@@ -193,10 +198,9 @@
    (else
     (begin
       (reset! cage x)
-      (let [(listener (hash-table-ref
-                       (listeners) ;; ares will fail to eval if this one is not dynamic call
-                       (class-of x)
-                       (const #f)))]
+      (let [(listener (get
+                        (listeners) ;; ares will fail to eval if this one is not dynamic call
+                       (class-of x)))]
         (when listener (add-listener x listener))
         #t)))))
 

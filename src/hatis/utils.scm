@@ -12,8 +12,7 @@
   #:export (read-string-from-fd
             _->- live-load
             even-list->alist
-            alist->even-list
-            reset! ref update))
+            alist->even-list))
 
 (define (read-string-from-fd fd)
   (call-with-port (fdopen fd "rb")
@@ -39,16 +38,3 @@
   (match-lambda
     ('() '())
     (((a . b) rest ...) (append (list a b) (alist->even-list rest)))))
-
-;; BEGIN: clojure-alike atomic-box & hash-map interfaces
-
-(define (reset! cage val)
-  (atomic-box-set! cage val))
-
-(define (ref cage)
-  (atomic-box-ref cage))
-
-(define (update cage f)
-  (reset! cage (f (ref cage))))
-
-;; END
