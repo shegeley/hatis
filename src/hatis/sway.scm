@@ -1,6 +1,6 @@
 (define-module (hatis sway)
 
-  #:use-module (srfi srfi-69) ;; hash-tables
+  #:use-module (srfi srfi-125) ;; hash-tables
 
   #:export (versioning))
 
@@ -12,4 +12,5 @@
    `((wl-compositor . 3)
      (wl-seat . 3)
      (zwp-input-method-manager-v2 . 1)
-     (xdg-wm-base . 2))))
+     (xdg-wm-base . 2))
+   equal?))

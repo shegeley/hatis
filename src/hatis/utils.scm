@@ -7,7 +7,6 @@
   #:use-module (ice-9 binary-ports)
 
   #:use-module (srfi srfi-1)
-  #:use-module (srfi srfi-69) ;; hash-tables
 
   #:export (read-string-from-fd
             _->- live-load
