@@ -12,7 +12,7 @@
   #:use-module ((wayland client protocol wayland)
                 #:select (wl-registry-bind))
 
-  #:use-module ((clojureism) #:hide (make))
+  #:use-module (clojureism)
   #:use-module (oop goops)
 
   #:export (wrap-binder add-listener make-listener))
