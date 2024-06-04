@@ -24,84 +24,75 @@
  #:use-module (packages bytestructure-class)
  #:use-module (packages wlroots))
 
-(define xmls-sources
-  `(("wayland-protocols" . "/share/wayland-protocols")
-    ("wlroots" . "/protocols")))
+(define expose-protocols
+ #~(lambda* (#:key inputs outputs #:allow-other-keys)
+    (let* [(dir "/share/wayland-protocols")
+           (out (assoc-ref outputs "out"))
+           (xml-dir (string-append out "/xmls"))
+           (xml? (lambda (x) (string-suffix-ci? ".xml" x)))
+           (find-xmls (lambda (input) (find-files (string-append input dir)
+                                  (lambda (x _) (xml? x)))))
+           (dst (lambda (xml) (string-append xml-dir "/" (basename xml))))]
+     (mkdir-p xml-dir)
+     (map (lambda (input)
+           (map (lambda (xml) (copy-file xml (dst xml)))
+            (find-xmls (cdr input)))) inputs)
+     (substitute* "modules/wayland/config.scm.in"
+      (("@WAYLAND_PROTOCOLS_DATAROOTDIR@") xml-dir))
+     #t)))
 
 (define-public guile-wayland
- (let [(expose-protocols
-        #~(lambda* (#:key inputs outputs #:allow-other-keys)
-           (let* [(out (assoc-ref outputs "out"))
-                  (xml-dir (string-append out "/xmls"))]
-            (mkdir-p xml-dir)
-            (map
-             (lambda (x)
-              (let [(xmls
-                     (find-files
-                      (string-append
-                       (assoc-ref inputs (car x))
-                       (cdr x))
-                      (lambda (x _) (string-suffix-ci? ".xml" x))))]
-               (map (lambda (x)
-                     (copy-file
-                      x
-                      (string-append xml-dir "/" (basename x)))) xmls)))
-             (quote #$xmls-sources))
-            (substitute* "modules/wayland/config.scm.in"
-             (("@WAYLAND_PROTOCOLS_DATAROOTDIR@") xml-dir))
-            #t)))]
-  (package
-   (name "guile-wayland")
-   (version "0.0.2")
-   (source
-    (origin
-     (method git-fetch)
-     (uri (git-reference
-           (url "https://github.com/shegeley/guile-wayland")
-           (commit "19f8278dfe62c75985abe108c8aa6f559af0d964")))
-     (sha256
-      (base32 "1d4jz8mph8akhl3hwaic45a0qqzwlg7yg0kdkphxzyc9zvn8mza9"))))
-   (build-system gnu-build-system)
-   (arguments
-    (list
-     #:configure-flags '(list "--disable-static")
-     #:make-flags '(list "GUILE_AUTO_COMPILE=0")
-     #:phases
-     #~(modify-phases %standard-phases
-        (add-before 'configure 'expose-protocols
-         #$expose-protocols)
-        (add-before 'build 'load-extension
-         (lambda* (#:key outputs #:allow-other-keys)
-          (let* ((out (assoc-ref outputs "out"))
-                 (lib (string-append out "/lib")))
-           (invoke "make" "install"
-            "-C" "libguile-wayland"
-            "-j" (number->string
-                  (parallel-job-count)))
-           (substitute* (find-files "." "\\.scm$")
-            (("\"libguile-wayland\"")
-             (string-append "\"" lib "/libguile-wayland\"")))))))))
-   (native-inputs
-    (list
-     autoconf
-     automake
-     libtool
-     pkg-config
-     texinfo
-     guile-3.0-latest))
-   (inputs
-    (list
-     guile-fibers ;; personal
-     guix
-     guile-3.0-latest
-     wayland
-     wayland-protocols
-     wlroots))
-   (propagated-inputs
-    (list
-     guile-bytestructure-class
-     guile-bytestructures))
-   (synopsis "Guile Wrappers for wayland")
-   (description "Guile Scheme wrappers for Wayland with GOOPS and xml-parsing-code-generating macroses and GOOPS")
-   (home-page "https://github.com/guile-wayland/guile-wayland")
-   (license license:gpl3+))))
+ (package
+  (name "guile-wayland")
+  (version "0.0.2")
+  (source
+   (origin
+    (method git-fetch)
+    (uri (git-reference
+          (url "https://github.com/shegeley/guile-wayland")
+          (commit "9f8278dfe62c75985abe108c8aa6f559af0d964")))
+    (sha256
+     (base32 "1d4jz8mph8akhl3hwaic45a0qqzwlg7yg0kdkphxzyc9zvn8mza9"))))
+  (build-system gnu-build-system)
+  (arguments
+   (list
+    #:configure-flags '(list "--disable-static")
+    #:make-flags '(list "GUILE_AUTO_COMPILE=0")
+    #:phases
+    #~(modify-phases %standard-phases
+       (add-before 'configure 'expose-protocols #$expose-protocols)
+       (add-before 'build 'load-extension
+        (lambda* (#:key outputs #:allow-other-keys)
+         (let* ((out (assoc-ref outputs "out"))
+                (lib (string-append out "/lib")))
+          (invoke "make" "install"
+           "-C" "libguile-wayland"
+           "-j" (number->string
+                 (parallel-job-count)))
+          (substitute* (find-files "." "\\.scm$")
+           (("\"libguile-wayland\"")
+            (string-append "\"" lib "/libguile-wayland\"")))))))))
+  (native-inputs
+   (list
+    autoconf
+    automake
+    libtool
+    pkg-config
+    texinfo
+    guile-3.0-latest))
+  (inputs
+   (list
+    guile-fibers ;; personal
+    guix
+    guile-3.0-latest
+    wayland
+    wayland-protocols
+    wlroots))
+  (propagated-inputs
+   (list
+    guile-bytestructure-class
+    guile-bytestructures))
+  (synopsis "Guile Wrappers for wayland")
+  (description "Guile Scheme wrappers for Wayland with GOOPS and xml-parsing-code-generating macroses and GOOPS")
+  (home-page "https://github.com/guile-wayland/guile-wayland")
+  (license license:gpl3+)))
