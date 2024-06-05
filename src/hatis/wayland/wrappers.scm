@@ -66,7 +66,7 @@
       #:down (lambda args (format #t \"down! ~a ~%\" args))
       ;; all the events must have handlers or it will cause an error
       ;; in wayland event loop
-      ...))
+      ...)
   =>
   (make-listener <wl-touch-listener>)
   @end example"
