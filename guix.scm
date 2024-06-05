@@ -29,6 +29,7 @@
     (build-system guile-build-system)
     (version "0.0.1-alpha")
     (propagated-inputs (list
+                         wlroots
                          guile-wayland
                          clojureism
                          guile-srfi-125))

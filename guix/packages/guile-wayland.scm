@@ -18,28 +18,13 @@
  #:use-module (gnu packages package-management)
  #:use-module (gnu packages pkg-config)
  #:use-module (gnu packages texinfo)
- #:use-module (gnu packages xdisorg)
- #:use-module (gnu packages)
 
  #:use-module (packages bytestructure-class)
  #:use-module (packages wlroots))
 
-(define expose-protocols
- #~(lambda* (#:key inputs outputs #:allow-other-keys)
-    (let* [(dir "/share/wayland-protocols")
-           (out (assoc-ref outputs "out"))
-           (xml-dir (string-append out "/xmls"))
-           (xml? (lambda (x) (string-suffix-ci? ".xml" x)))
-           (find-xmls (lambda (input) (find-files (string-append input dir)
-                                  (lambda (x _) (xml? x)))))
-           (dst (lambda (xml) (string-append xml-dir "/" (basename xml))))]
-     (mkdir-p xml-dir)
-     (map (lambda (input)
-           (map (lambda (xml) (copy-file xml (dst xml)))
-            (find-xmls (cdr input)))) inputs)
-     (substitute* "modules/wayland/config.scm.in"
-      (("@WAYLAND_PROTOCOLS_DATAROOTDIR@") xml-dir))
-     #t)))
+(define url "https://github.com/guile-wayland/guile-wayland")
+(define commit "1110b82295509e2deec9fdacae2a434bb1a60a6f")
+(define hash "1k4r2cii1fv6047dpvav3w2andh7wqwa63b59ynsx0qqzk0ag8w2")
 
 (define-public guile-wayland
  (package
@@ -48,19 +33,19 @@
   (source
    (origin
     (method git-fetch)
-    (uri (git-reference
-          (url "https://github.com/shegeley/guile-wayland")
-          (commit "9f8278dfe62c75985abe108c8aa6f559af0d964")))
-    (sha256
-     (base32 "1d4jz8mph8akhl3hwaic45a0qqzwlg7yg0kdkphxzyc9zvn8mza9"))))
+    (uri (git-reference (url url) (commit commit)))
+    (sha256 (base32 hash))))
   (build-system gnu-build-system)
+  (native-search-paths
+   (list (search-path-specification
+          (variable "GUILE_WAYLAND_PROTOCOL_PATH")
+          (files (list "share/wayland-protocols")))))
   (arguments
    (list
     #:configure-flags '(list "--disable-static")
     #:make-flags '(list "GUILE_AUTO_COMPILE=0")
     #:phases
     #~(modify-phases %standard-phases
-       (add-before 'configure 'expose-protocols #$expose-protocols)
        (add-before 'build 'load-extension
         (lambda* (#:key outputs #:allow-other-keys)
          (let* ((out (assoc-ref outputs "out"))
@@ -96,3 +81,5 @@
   (description "Guile Scheme wrappers for Wayland with GOOPS and xml-parsing-code-generating macroses and GOOPS")
   (home-page "https://github.com/guile-wayland/guile-wayland")
   (license license:gpl3+)))
+
+guile-wayland

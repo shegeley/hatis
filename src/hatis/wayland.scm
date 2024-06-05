@@ -1,10 +1,10 @@
 (define-module (hatis wayland)
-  #:use-module (wayland proxy)
-  #:use-module (wayland interface)
   #:use-module (wayland client display)
   #:use-module (wayland client protocol input-method)
   #:use-module (wayland client protocol wayland)
   #:use-module (wayland client protocol xdg-shell)
+  #:use-module (wayland interface)
+  #:use-module (wayland client proxy)
 
   #:use-module ((hatis sway) #:prefix sway:)
   #:use-module (hatis wayland seat)
