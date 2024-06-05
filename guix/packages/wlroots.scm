@@ -91,3 +91,5 @@ Wayland compositor")
   (description "wlroots is a set of pluggable, composable, unopinionated
 modules for building a Wayland compositor.")
   (license license:expat)))
+
+wlroots
