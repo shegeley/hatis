@@ -265,13 +265,6 @@ For now X support is not a priority. XWayland also has keyboard grab support. Se
 Input-popup-surface is another breed. Won't cast to any other.
 ** [[httphttps://github.com/swaywm/wlroots/blob/master/examples/input-method.c][input-method usage example from swaywm]]
 * TODOS
-** TODO Setup clojure-alike state-management
-:PROPERTIES:
-:ID:       fb08185a-645e-4203-96a3-11ddecc5f1f6
-:END:
-Pack clojure-alike interfaces for associative structures in a separate package and add it in the project
-get, get-in, assoc, assoc-in, update, update-in
-reset!, swap! update,
 ** TODO Draft a simple GTK-based UI to show on text-input
 Best case scenario: UI should be described as lisp data structure (xml?) and it should be possible to "resolve" it structure with different custom "resolvers" for gtk, qt, etc.
 ** TODO Figure out why do I have to supply versioning directly ~(hatis sway)~ :wayland:versioning:
@@ -289,19 +282,6 @@ It seems to be possible on very basic level.
 See [[https://github.com/guile-wayland/guile-wayland/blob/master/tests/display.scm][guile-wayland/tests]].
 ---
 Also learn how the sway, mutter and etc themselfs are tested
-** TODO Rewrite ~catch*~ & introduce ~state~ as ~(atomic-box (hash-map ...))~
-Something like:
-#+begin_src scheme
-(define state (make-atomic-box (make-hash-map)))
-
-(define* (catch* x #:key (listeners listeners)
-                   #:key (state state))
-  (cond ((ref cage) (release cage x))
-        ((equal? #f x) #f)
-        (else ;; something like this, below
-         (assoc-in! state (list 'interfaces (class-name (class x))) x)
-         ...)))
-#+end_src
 ** TODO Parse keyboard-events ~uint~ with ~guile-libxkbcommon~ (or ~guile-libinput~?)
 What's ment by parsing? Turn key serial (unit) into ... what? xkb "entry"?
 
@@ -323,7 +303,7 @@ Having a keypress uid I can translate it to any character with any keyboard mapp
 
 I can parse what's came from grabbed keyword:
 #+begin_src
-kb_keymap {
+xkb_keymap {
     xkb_keycodes "(unnamed)" {
             minimum = 8;
             maximum = 708;
@@ -413,6 +393,26 @@ The protocol:
 - does not guarantee that events sent to this client are exhaustive, a compositor may filter some events for its own consumption,
 - does not guarantee that events sent to this client are continuous, a compositor may change and reroute keyboard events while the grab is nominally active.
 #+end_quote
+** DONE Rewrite ~catch*~ & introduce ~state~ as ~(atomic-box (hash-map ...))~
+Something like:
+#+begin_src scheme
+(define state (make-atomic-box (make-hash-map)))
+
+(define* (catch* x #:key (listeners listeners)
+                   #:key (state state))
+  (cond ((ref cage) (release cage x))
+        ((equal? #f x) #f)
+        (else ;; something like this, below
+         (assoc-in! state (list 'interfaces (class-name (class x))) x)
+         ...)))
+#+end_src
+** DONE Setup clojure-alike state-management
+:PROPERTIES:
+:ID:       fb08185a-645e-4203-96a3-11ddecc5f1f6
+:END:
+Pack clojure-alike interfaces for associative structures in a separate package and add it in the project
+get, get-in, assoc, assoc-in, update, update-in
+reset!, swap! update,
 ** DONE Catch [[https://wayland.app/protocols/wayland#wl_pointer][wl_pointer]]
 For now just create default listener that will simply print events
 ** DONE Catch [[https://wayland.app/protocols/wayland#wl_touch][wl_touch]]
