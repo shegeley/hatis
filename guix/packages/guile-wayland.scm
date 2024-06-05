@@ -36,10 +36,6 @@
     (uri (git-reference (url url) (commit commit)))
     (sha256 (base32 hash))))
   (build-system gnu-build-system)
-  (native-search-paths
-   (list (search-path-specification
-          (variable "GUILE_WAYLAND_PROTOCOL_PATH")
-          (files (list "share/wayland-protocols")))))
   (arguments
    (list
     #:configure-flags '(list "--disable-static")
@@ -71,8 +67,7 @@
     guix
     guile-3.0-latest
     wayland
-    wayland-protocols
-    wlroots))
+    wayland-protocols))
   (propagated-inputs
    (list
     guile-bytestructure-class

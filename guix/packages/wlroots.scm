@@ -28,6 +28,9 @@
            (xml-copy (lambda (x y) (if (xml? x) (copy-file x y) #f)))]
      (mkdir-p dir)
      (copy-recursively "protocol" target-dir #:copy-file xml-copy)
+     (setenv "GUILE_WAYLAND_PROTOCOL_PATH"
+      (string-append target-dir
+       ":" (or "" (getenv "GUILE_WAYLAND_PROTOCOL_PATH"))))
      #t)))
 
 (define-public wlroots
@@ -44,6 +47,10 @@
     (sha256
      (base32 "1m12nv6avgnz626h3giqp6gcx44w1wq6z0jy780mx8z255ic7q15"))))
   (build-system meson-build-system)
+  (native-search-paths
+   (list (search-path-specification
+          (variable "GUILE_WAYLAND_PROTOCOL_PATH")
+          (files (list "share/wayland-protocols")))))
   (arguments
    (list
     #:phases

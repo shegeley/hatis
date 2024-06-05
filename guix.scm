@@ -29,10 +29,10 @@
     (build-system guile-build-system)
     (version "0.0.1-alpha")
     (propagated-inputs (list
-                         wlroots
                          guile-wayland
                          clojureism
                          guile-srfi-125))
+    (native-inputs (list wlroots guile-wayland))
     (inputs (list
              guile-fibers
              guile-3.0-latest))))
