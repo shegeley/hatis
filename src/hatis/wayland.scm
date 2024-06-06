@@ -38,10 +38,12 @@
   - active-interfaces - hash-map of (class-of interface) and an interface
   - keymap - current keymap
   |#
-  (let [(active-interfaces (make-hash-table equal?))]
+  ;; Using `'eq?`' is critical for comparing guile-bytestructures (see README.org notes)
+  (let [(active-interfaces (make-hash-table eq?))]
     (make-atomic-box
-      (alist->hash-table `((active-interfaces . ,active-interfaces)
-                            (keymap . #f)) equal?))))
+     (alist->hash-table
+      `((active-interfaces . ,active-interfaces)
+        (keymap . #f)) eq?))))
 
 (define (get-interface class)
   (get-in (ref state) `(active-interfaces ,class)))
@@ -60,7 +62,8 @@
 (define (releasers)
   (alist->hash-table
     `((,<zwp-input-method-manager-v2> . ,zwp-input-method-manager-v2-destroy)
-       (,<zwp-input-method-v2> . ,zwp-input-method-v2-destroy)) equal?))
+      (,<zwp-input-method-v2> . ,zwp-input-method-v2-destroy))
+    eq?))
 
 (define* (release x #:key
            (releasers releasers))
@@ -144,7 +147,7 @@
        (,<wl-registry> . ,registry-listener)
        (,<wl-pointer> . ,pointer-listener)
        (,<zwp-input-method-keyboard-grab-v2> . ,keyboard-grab-listener)
-       (,<zwp-input-method-v2> . ,input-method-listener)) equal?))
+       (,<zwp-input-method-v2> . ,input-method-listener)) eq?))
 
 (define* (add-listener* x #:key (listeners listeners))
   ;; NOTE: ares will fail to eval if (listeners) are not dynamic call

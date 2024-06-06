@@ -75,7 +75,7 @@
                     (let [(kw (slot-definition-init-keyword x))]
                       (if (not (equal? kw #:%pointer)) kw #f)))
                   (class-slots class)))
-         (events-hash-table (alist->hash-table (even-list->alist args) equal?))
+         (events-hash-table (alist->hash-table (even-list->alist args) eq?))
          (_  (map (lambda (e)
                     (cond
                      ((hash-table-exists? events-hash-table e) #f)
