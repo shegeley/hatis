@@ -65,8 +65,7 @@
       (,<zwp-input-method-v2> . ,zwp-input-method-v2-destroy))
     eq?))
 
-(define* (release x #:key
-           (releasers releasers))
+(define* (release-interface x #:key (releasers releasers))
   (let [(releaser (get (releasers) (class-of x)))]
     (when releaser (releaser x))
     (deactivate-interface! x)))
@@ -97,7 +96,7 @@
           (format #t "interface: '~a', version: ~a, name: ~a ~%"
             interface version name)
          (when (member interface registry:required-interfaces)
-          (catch (apply sway:wrap-binder args)))))
+          (catch-interface (apply sway:wrap-binder args)))))
        #:global-remove
       (lambda (data registry name)
         (pk 'remove data registry name)))))
@@ -151,25 +150,25 @@
   (let [(listener (get (listeners) (class-of x)))]
     (when listener (add-listener x listener)) #t))
 
-(define* (catch x #:key (listeners listeners))
+(define* (catch-interface x #:key (listeners listeners))
   (format #t "Catch* ~a into current state ~a ~%" x (ref state))
   (cond
     ;; interface already active
-    ((i (class-of x)) (release x))
+    ((i (class-of x)) (release-interface x))
     ;; x if false := failed to get it (for example devices won't have touch capability)
     ((equal? #f x) #f)
     (else (activate-interface! x)
           (add-listener* x #:listeners listeners))))
 
 (define (main)
-  (catch (wl-display-connect))
+  (catch-interface (wl-display-connect))
 
   (unless (i <wl-display>)
     (display "Unable to connect to wayland compositor")
     (newline)
     (exit -1))
 
-  (catch (wl-display-get-registry (i <wl-display>)))
+  (catch-interface (wl-display-get-registry (i <wl-display>)))
 
   ;; roundtip here is needed to catch* all the interfaces inside registry-listener
   ;; https://wayland.freedesktop.org/docs/html/apb.html#Client-classwl__display_1ab60f38c2f80980ac84f347e932793390
@@ -179,9 +178,10 @@
     (format #t "Input manager available: ~a ~%" (i <zwp-input-method-manager-v2>))
     (error (format #f "Can't access input-manager!")))
 
-  (catch (zwp-input-method-manager-v2-get-input-method
-           (i <zwp-input-method-manager-v2>)
-           (i <wl-seat>)))
+  (catch-interface
+   (zwp-input-method-manager-v2-get-input-method
+    (i <zwp-input-method-manager-v2>)
+    (i <wl-seat>)))
 
   (format #t "Input-method: ~a ~%" (i <zwp-input-method-v2>))
 
