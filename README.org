@@ -82,6 +82,8 @@ As an ex-clojureist I see state as an atom contaning hash-map with hooks (add/re
 Unfortunately guile scheme still doesn't have clojure-alike interfaces for associative structures (get, get-in, assoc, assoc-in, update, update-in) and atomics (reset!, swap!, update, add/remove-watch).
 
 It's not the first time when I've met the lack of it very painfull. So I have to [[id:fb08185a-645e-4203-96a3-11ddecc5f1f6][write one]] when working on this project.
+** On ~bytestructure-class~ comparators
+~equal?~ won't work. might throw 139 SIGSEGV. use ~eq?~.
 ** On ~wl_seat~ and it's capabilities
 ~(wl-seat-get-...)~ (touch/pointer/keyboard) can be called even when there is no relatable capability (when there is no touch devices, for example)
 
