@@ -81,7 +81,7 @@
   (make-listener <wl-pointer-listener>))
 
 (define seat-listener
-  (make-listener <wl-seat-listener> (list #:name (lambda args (format #t "seat:name ~a ~%" args)))))
+  (make-listener <wl-seat-listener>))
 
 (define registry:required-interfaces
  '("wl_compositor"
