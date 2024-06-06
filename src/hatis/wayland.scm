@@ -83,6 +83,12 @@
 (define seat-listener
   (make-listener <wl-seat-listener> (list #:name (lambda args (format #t "seat:name ~a ~%" args)))))
 
+(define registry:required-interfaces
+ '("wl_compositor"
+   "wl_seat"
+   "zwp_input_method_manager_v2"
+   "xdg_wm_base"))
+
 (define registry-listener
   (make-listener <wl-registry-listener>
     (list #:global
@@ -90,18 +96,9 @@
         (match-let* [((data registry name interface version) args)]
           (format #t "interface: '~a', version: ~a, name: ~a ~%"
             interface version name)
-          (when (member interface '("wl_compositor" "wl_seat" "zwp_input_method_manager_v2" "xdg_wm_base"))
-            (let [(wrapped (apply sway:wrap-binder args))]
-              (cond
-                ((string=? "wl_compositor" interface)
-                  (catch wrapped))
-                ((string=? "wl_seat" interface)
-                  (catch wrapped))
-                ((string=? "zwp_input_method_manager_v2" interface)
-                  (catch wrapped))
-                ((string=? "xdg_wm_base" interface)
-                  (catch wrapped)))))))
-      #:global-remove
+         (when (member interface registry:required-interfaces)
+          (catch (apply sway:wrap-binder args)))))
+       #:global-remove
       (lambda (data registry name)
         (pk 'remove data registry name)))))
 
