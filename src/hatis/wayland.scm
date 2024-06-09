@@ -189,7 +189,7 @@
 (define (spin)
   (while #t (roundtrip)))
 
-(define (main)
+(define (start)
   (connect)
   (get-registry)
   ;; roundtip here is needed to catch* all the interfaces inside registry-listener
@@ -209,7 +209,7 @@
 (define thread
   (call-with-new-thread
    (lambda ()
-     (with-output-to-port output-port main))))
+     (with-output-to-port output-port start)))
 
 (define (stop)
   (cancel-thread thread)
