@@ -46,9 +46,13 @@
          (add-listener-proc (live-load (symbol-append name '-add-listener)))]
     (add-listener-proc x listener)))
 
+(define (timestamp)
+  (strftime "%c" (localtime (current-time))))
+
 (define default-event-handler
   (lambda (listener-class event-name args)
-    (format #t "Event ~a/~a called with args ~a ~%"
+    (format #t "[~a] Event ~a/~a called with args ~a ~%"
+            (timestamp)
             (class-name listener-class)
             (keyword->symbol event-name) args)))
 
