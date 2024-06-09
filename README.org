@@ -377,6 +377,8 @@ Maybe something like
 #+end_src
 
 Think about it, try different things
+---
+Casting ~(wl-display-disconnect (i <wl-display>))~ throws 139 (memory) error. It need proper shutdown. THINK
 ** TODO Figure out if (how?) it's possible to distinguish one "text-input-context" from another
 :PROPERTIES:
 :ID:       8fce6ad3-309c-4354-bffc-dab11f37c6cc
