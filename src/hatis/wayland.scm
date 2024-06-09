@@ -216,7 +216,7 @@
   (wl-display-flush (i <wl-display>))
   (wl-display-disconnect (i <wl-display>)))
 
-#|
-(zwp-input-method-v2-commit-string (ref input-method) "Lorem ipsum")
-(zwp-input-method-v2-commit (ref input-method) 1)
-|#
+(define (insert text)
+  (when (string? text)
+    (zwp-input-method-v2-commit-string (i <zwp-input-method-v2>) text)
+    (zwp-input-method-v2-commit (i  <zwp-input-method-v2>) 1)))
