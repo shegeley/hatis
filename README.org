@@ -296,9 +296,7 @@ See:
 2. https://wayland.app/protocols/primary-selection-unstable-v1
 3. https://wayland.app/protocols/wlr-data-control-unstable-v1
 ** TODO Get "window manager context" (see definitions) (~app_id~ + ~pid~ & etc)
-There is no "unified" way of doing this in all Wayland implementationsthis because it's not Wayland's responsibility in general.
-
-- sway: [[https://github.com/swaywm/sway/blob/master/swaymsg/main.c][swaymsg]]
+[[https://wayland.app/protocols/wlr-foreign-toplevel-management-unstable-v1#zwlr_foreign_toplevel_handle_v1:event:app_id][zwlr_foreign_toplevel_handle_v1:event:app_id]]
 ** TODO Get "file system context" (see definitions)
 ** TODO Parse xkb keymap format [low priority]
 Having a keypress uid I can translate it to any character with any keyboard mapping basically.
