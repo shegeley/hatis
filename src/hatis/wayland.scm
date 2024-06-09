@@ -211,7 +211,10 @@
    (lambda ()
      (with-output-to-port output-port main))))
 
-;; (cancel-thread thread)
+(define (stop)
+  (cancel-thread thread)
+  (wl-display-flush (i <wl-display>))
+  (wl-display-disconnect (i <wl-display>)))
 
 #|
 (zwp-input-method-v2-commit-string (ref input-method) "Lorem ipsum")
