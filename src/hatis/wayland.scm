@@ -160,32 +160,43 @@
     (else (activate-interface! x)
           (add-listener* x #:listeners listeners))))
 
-(define (main)
+(define (connect)
   (catch-interface (wl-display-connect))
 
   (unless (i <wl-display>)
     (display "Unable to connect to wayland compositor")
     (newline)
-    (exit -1))
+    (exit -1)))
 
-  (catch-interface (wl-display-get-registry (i <wl-display>)))
+(define (get-registry)
+  (catch-interface (wl-display-get-registry (i <wl-display>))))
 
-  ;; roundtip here is needed to catch* all the interfaces inside registry-listener
-  ;; https://wayland.freedesktop.org/docs/html/apb.html#Client-classwl__display_1ab60f38c2f80980ac84f347e932793390
-  (wl-display-roundtrip (i <wl-display>))
+(define (roundtrip)
+  (wl-display-roundtrip (i <wl-display>)))
 
+(define (get-input-method)
   (if (i <zwp-input-method-manager-v2>)
-    (format #t "Input manager available: ~a ~%" (i <zwp-input-method-manager-v2>))
-    (error (format #f "Can't access input-manager!")))
+      (format #t "Input manager available: ~a ~%" (i <zwp-input-method-manager-v2>))
+      (error (format #f "Can't access input-manager!")))
 
   (catch-interface
    (zwp-input-method-manager-v2-get-input-method
     (i <zwp-input-method-manager-v2>)
     (i <wl-seat>)))
 
-  (format #t "Input-method: ~a ~%" (i <zwp-input-method-v2>))
+  (format #t "Input-method: ~a ~%" (i <zwp-input-method-v2>)))
 
-  (while #t (wl-display-roundtrip (i <wl-display>))))
+(define (spin)
+  (while #t (roundtrip)))
+
+(define (main)
+  (connect)
+  (get-registry)
+  ;; roundtip here is needed to catch* all the interfaces inside registry-listener
+  ;; https://wayland.freedesktop.org/docs/html/apb.html#Client-classwl__display_1ab60f38c2f80980ac84f347e932793390
+  (roundtrip)
+  (get-input-method)
+  (spin))
 
 (define output-file (make-parameter "./output.txt"))
 
