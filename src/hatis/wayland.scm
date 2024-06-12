@@ -186,9 +186,6 @@
 
   (format #t "Input-method: ~a ~%" (i <zwp-input-method-v2>)))
 
-(define (spin)
-  (while #t (roundtrip)))
-
 (define (start)
   (connect)
   (get-registry)
@@ -196,7 +193,7 @@
   ;; https://wayland.freedesktop.org/docs/html/apb.html#Client-classwl__display_1ab60f38c2f80980ac84f347e932793390
   (roundtrip)
   (get-input-method)
-  (spin))
+  (while #t (roundtrip)))
 
 (define output-file (make-parameter "./output.txt"))
 
