@@ -15,10 +15,11 @@
   #:use-module (fibers)
   #:use-module (fibers channels)
 
-  #:use-module (srfi srfi-1) ;; list base
+  #:use-module ((srfi srfi-1) #:hide (assoc)) ;; list base
   #:use-module (srfi srfi-125) ;; hash-tables
 
-  #:use-module (clojureism)
+  #:use-module (clojureism associative)
+  #:use-module (clojureism atomic)
 
   #:use-module (ice-9 match)
   #:use-module (ice-9 format)
