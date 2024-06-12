@@ -209,7 +209,7 @@
 (define thread
   (call-with-new-thread
    (lambda ()
-     (with-output-to-port output-port start)))
+     (with-output-to-port output-port start))))
 
 (define (stop)
   (cancel-thread thread)
