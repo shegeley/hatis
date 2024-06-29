@@ -46,8 +46,8 @@
       `((active-interfaces . ,active-interfaces)
         (keymap . #f)) eq?))))
 
-(define (get-interface class)
-  (get-in (ref state) `(active-interfaces ,class)))
+(define (get-interface x)
+  (get-in (ref state) `(active-interfaces ,x)))
 
 (define i get-interface) ;; shorten
 
