@@ -58,7 +58,7 @@
   (swap! state (lambda (s) (assoc-in s `(active-interfaces ,(class-of x)) #f))))
 
 (define (catch-keymap keymap)
-  (swap! state (lambda (s) (assoc s 'keymap keymap))))
+  (swap! state (lambda (s) (assoc-in s '(keymap) keymap))))
 
 (define (releasers)
   (alist->hash-table
