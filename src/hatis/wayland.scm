@@ -128,7 +128,9 @@
       (lambda (_ im)
         (format #t "activate! im: ~a ~%" im)
         (catch-interface (wl-compositor-create-surface (i <wl-compositor>)))
-        (catch-interface (zwp-input-method-v2-get-input-popup-surface im (i <wl-surface>)))
+        (catch-interface (zwp-input-method-v2-get-input-popup-surface
+                           (i <zwp-input-method-v2>)
+                           (i <wl-surface>)))
         (catch-interface (zwp-input-method-v2-grab-keyboard im)))
       #:deactivate
       (lambda args
