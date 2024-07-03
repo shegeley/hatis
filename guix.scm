@@ -35,6 +35,7 @@
     (native-inputs (list wlroots guile-wayland))
     (inputs (list
              guile-fibers
+             guile-websocket
              guile-3.0-latest))))
 
 hatis
