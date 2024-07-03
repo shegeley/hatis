@@ -67,12 +67,6 @@
   (map (lambda (event)
          (hash-table-set! events-hash-table event (initialize-event class event events-hash-table primary-event-handler))) events))
 
-(define (hash-table->even-list hash-table)
-  (alist->even-list (hash-table->alist hash-table)))
-
-(define* (even-list->hash-table even-list #:optional (comparator eq?))
-  (alist->hash-table (even-list->alist even-list) comparator))
-
 (define* (make-listener class
                         #:optional (args '())
                         #:key      (primary-event-handler primary-event-handler))

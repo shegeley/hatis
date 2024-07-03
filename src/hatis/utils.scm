@@ -7,11 +7,14 @@
   #:use-module (ice-9 binary-ports)
 
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-125)
 
   #:export (read-string-from-fd
             _->- live-load
             even-list->alist
-            alist->even-list))
+            alist->even-list
+            hash-table->even-list
+            even-list->hash-table))
 
 (define (read-string-from-fd fd)
   (call-with-port (fdopen fd "rb")
@@ -37,3 +40,9 @@
   (match-lambda
     ('() '())
     (((a . b) rest ...) (append (list a b) (alist->even-list rest)))))
+
+(define (hash-table->even-list hash-table)
+  (alist->even-list (hash-table->alist hash-table)))
+
+(define* (even-list->hash-table even-list #:optional (comparator eq?))
+  (alist->hash-table (even-list->alist even-list) comparator))
