@@ -89,18 +89,16 @@
    "zwp_input_method_manager_v2"
    "xdg_wm_base"))
 
+(define (registry:global-handler . args)
+  (match-let* [((data registry name interface version) args)]
+    (format #t "interface: '~a', version: ~a, name: ~a ~%"
+            interface version name)
+    (when (member interface registry:required-interfaces)
+      (catch-interface (apply sway:wrap-binder args)))))
+
 (define registry-listener
   (make-listener <wl-registry-listener>
-    (list #:global
-      (lambda* args
-        (match-let* [((data registry name interface version) args)]
-          (format #t "interface: '~a', version: ~a, name: ~a ~%"
-            interface version name)
-         (when (member interface registry:required-interfaces)
-          (catch-interface (apply sway:wrap-binder args)))))
-       #:global-remove
-      (lambda (data registry name)
-        (pk 'remove data registry name)))))
+    (list #:global registry:global-handler)))
 
 (define (handle-key-press . args)
   "let if be as is for now. but I guess enhanced interception logic needed.
