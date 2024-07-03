@@ -179,18 +179,8 @@
   (get-input-method)
   (while #t (roundtrip)))
 
-(define output-file (make-parameter "./output.txt"))
-
-(define (reset-output)
-  (when (file-exists? (output-file))
-    (delete-file (output-file))))
-
-(define output-port (open-file (output-file) "a0"))
-
 (define thread
-  (call-with-new-thread
-   (lambda ()
-     (with-output-to-port output-port start))))
+  (call-with-new-thread start))
 
 (define (stop)
   (cancel-thread thread)
