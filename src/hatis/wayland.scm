@@ -100,25 +100,11 @@
   (make-listener <wl-registry-listener>
     (list #:global registry:global-handler)))
 
-(define (handle-key-press . args)
-  "let if be as is for now. but I guess enhanced interception logic needed.
-   like:
-    (define (wrap-handle-press-event pointer grab serial timestamp key state)
-        (alist->hash-table `((serial . ,serial)
-                            (timestamp . ,timestamp)
-                            (key . ,key)
-                            (state . ,state))))"
-  (format #t "key! args: ~a ~%" args)
-  ;; (put-message chan (list #:key args))
-  )
-
 (define keyboard-grab-listener
   (make-listener <zwp-input-method-keyboard-grab-v2-listener>
     (list #:keymap
       (lambda args
-        (format #t "keymap! args: ~a ~%" args)
-        (catch-keymap (apply get-keymap (drop args 2))))
-      #:key handle-key-press)))
+        (catch-keymap (apply get-keymap (drop args 2)))))))
 
 (define (catch-input-surface) ;; broken
   (catch-interface (wl-compositor-create-surface (i <wl-compositor>)))
@@ -130,14 +116,12 @@
   (make-listener <zwp-input-method-v2-listener>
     (list #:activate
       (lambda (_ im)
-        (format #t "activate! im: ~a ~%" im)
         ;; (catch-input-surface) ;; TODO: fix
         (catch-interface (zwp-input-method-v2-grab-keyboard im)))
-      #:deactivate
+      #| #:deactivate
       (lambda args
-        ;; Release keyboard NEEDED?
-        ;; (zwp-input-method-keyboard-grab-v2-release (keyboard))
-        (format #t "leave! args: ~a ~%" args)))))
+        #| Release keyboard NEEDED? |#
+      (zwp-input-method-keyboard-grab-v2-release (keyboard))) |#)))
 
 (define (listeners)
   "Here listeners is a proc because guile don't have clojure-alike `declare' and listeners are declared after their reference"
@@ -155,7 +139,6 @@
     (when listener (add-listener x listener)) #t))
 
 (define* (catch-interface x #:key (listeners listeners))
-  (format #t "Catch* ~a into current state ~a ~%" x (ref state))
   (cond
     ;; interface already active
     ((i (class-of x)) (release-interface x))
@@ -179,16 +162,13 @@
   (wl-display-roundtrip (i <wl-display>)))
 
 (define (get-input-method)
-  (if (i <zwp-input-method-manager-v2>)
-      (format #t "Input manager available: ~a ~%" (i <zwp-input-method-manager-v2>))
-      (error (format #f "Can't access input-manager!")))
+  (unless (i <zwp-input-method-manager-v2>)
+    (error (format #f "Can't access input-manager!")))
 
   (catch-interface
    (zwp-input-method-manager-v2-get-input-method
     (i <zwp-input-method-manager-v2>)
-    (i <wl-seat>)))
-
-  (format #t "Input-method: ~a ~%" (i <zwp-input-method-v2>)))
+    (i <wl-seat>))))
 
 (define (start)
   (connect)
