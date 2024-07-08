@@ -28,8 +28,6 @@
 
   #:use-module (oop goops))
 
-(gc-disable)
-
 (define (current-desktop)
   (getenv "XDG_CURRENT_DESKTOP"))
 
@@ -149,6 +147,8 @@
     (else (activate-interface! x)
           (add-listener* x #:listeners listeners))))
 
+(define (setup) (gc-disable))
+
 (define (connect)
   (catch-interface (wl-display-connect))
 
@@ -176,6 +176,7 @@
  (while #t (roundtrip)))
 
 (define (start)
+  (setup)
   (connect)
   (get-registry)
   ;; roundtip here is needed to catch* all the interfaces inside registry-listener
