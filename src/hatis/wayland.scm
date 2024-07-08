@@ -28,11 +28,12 @@
 
   #:use-module (oop goops))
 
+(gc-disable)
+
 (define (current-desktop)
   (getenv "XDG_CURRENT_DESKTOP"))
 
-(define chan
-  (make-channel))
+(define events-channel (make-channel))
 
 (define state
   #| State is an atom hash-map of following structure:
@@ -74,14 +75,17 @@
 (define (sway:wrap-binder . args)
   (apply wrap-binder (append args (list #:versioning sway:versioning))))
 
-(define touch-listener
-  (make-listener <wl-touch-listener>))
+(define channel-event-handler
+  (lambda (listener-class event-name args)
+    (put-message events-channel
+      (list listener-class event-name args))))
 
-(define pointer-listener
-  (make-listener <wl-pointer-listener>))
+(define* (make-listener* class #:optional (args '()))
+  (make-listener class args #:primary-handler channel-event-handler))
 
-(define seat-listener
-  (make-listener <wl-seat-listener>))
+(define touch-listener   (make-listener* <wl-touch-listener>))
+(define pointer-listener (make-listener* <wl-pointer-listener>))
+(define seat-listener    (make-listener* <wl-seat-listener>))
 
 (define registry:required-interfaces
  '("wl_compositor"
@@ -91,17 +95,15 @@
 
 (define (registry:global-handler . args)
   (match-let* [((data registry name interface version) args)]
-    (format #t "interface: '~a', version: ~a, name: ~a ~%"
-            interface version name)
     (when (member interface registry:required-interfaces)
       (catch-interface (apply sway:wrap-binder args)))))
 
 (define registry-listener
-  (make-listener <wl-registry-listener>
+  (make-listener* <wl-registry-listener>
     (list #:global registry:global-handler)))
 
 (define keyboard-grab-listener
-  (make-listener <zwp-input-method-keyboard-grab-v2-listener>
+  (make-listener* <zwp-input-method-keyboard-grab-v2-listener>
     (list #:keymap
       (lambda args
         (catch-keymap (apply get-keymap (drop args 2)))))))
@@ -113,7 +115,7 @@
                     (i <wl-surface>))))
 
 (define input-method-listener
-  (make-listener <zwp-input-method-v2-listener>
+  (make-listener* <zwp-input-method-v2-listener>
     (list #:activate
       (lambda (_ im)
         ;; (catch-input-surface) ;; TODO: fix
@@ -170,6 +172,9 @@
     (i <zwp-input-method-manager-v2>)
     (i <wl-seat>))))
 
+(define (spin)
+ (while #t (roundtrip)))
+
 (define (start)
   (connect)
   (get-registry)
@@ -177,10 +182,9 @@
   ;; https://wayland.freedesktop.org/docs/html/apb.html#Client-classwl__display_1ab60f38c2f80980ac84f347e932793390
   (roundtrip)
   (get-input-method)
-  (while #t (roundtrip)))
+  (spin))
 
-(define thread
-  (call-with-new-thread start))
+(define thread (call-with-new-thread start))
 
 (define (stop)
   (cancel-thread thread)
@@ -191,3 +195,7 @@
   (when (string? text)
     (zwp-input-method-v2-commit-string (i <zwp-input-method-v2>) text)
     (zwp-input-method-v2-commit (i  <zwp-input-method-v2>) 1)))
+
+(insert "sas")
+
+(get-message events-channel)
