@@ -56,16 +56,19 @@
             (class-name listener-class)
             (keyword->symbol event-name) args)))
 
-(define (initialize-event class event events-hash-table primary-event-handler)
-  (lambda args*
-    (let [(handler (hash-table-ref/default events-hash-table event #f))
-          (handler-arglist (list class event args*))]
-      (begin (apply primary-event-handler handler-arglist)
-             (if handler (apply handler handler-arglist) #t)))))
+(define (initialize-event events-hash-table primary-event-handler)
+  (lambda (class event args)
+    (let [(handler (hash-table-ref/default events-hash-table event #f))]
+      (begin (primary-event-handler class event args)
+             (if handler (handler class event args) #t)))))
 
-(define (initialize-events-hash-table class events events-hash-table primary-event-handler)
+(define (initialize-events-hash-table
+          class events events-hash-table primary-event-handler)
   (map (lambda (event)
-         (hash-table-set! events-hash-table event (initialize-event class event events-hash-table primary-event-handler))) events))
+         (hash-table-set!
+           events-hash-table event
+           (initialize-event events-hash-table primary-event-handler)))
+    events))
 
 (define* (make-listener class
                         #:optional (args '())
