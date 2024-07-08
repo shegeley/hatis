@@ -49,33 +49,34 @@
 (define (timestamp)
   (strftime "%c" (localtime (current-time))))
 
-(define primary-event-handler
+(define primary-handler
   (lambda (listener-class event-name args)
     (format #t "[~a] Event ~a/~a called with args ~a ~%"
             (timestamp)
             (class-name listener-class)
             (keyword->symbol event-name) args)))
 
-(define (initialize-event events-hash-table primary-event-handler)
-  (lambda (class event args)
-    (let [(handler (hash-table-ref/default events-hash-table event #f))]
-      (begin (primary-event-handler class event args)
-             (if handler (handler class event args) #t)))))
+(define (init-event class event primary-handler secondary-handler)
+ (lambda wayland-event-args
+  (begin
+   (primary-handler class event wayland-event-args)
+   (when secondary-handler
+    (apply secondary-handler wayland-event-args)))))
 
-(define (initialize-events-hash-table
-          class events events-hash-table primary-event-handler)
-  (map (lambda (event)
-         (hash-table-set!
-           events-hash-table event
-           (initialize-event events-hash-table primary-event-handler)))
-    events))
+(define (init-events-table class events events-hash-table primary-handler)
+ (map (lambda (event)
+       (hash-table-set! events-hash-table event
+        (let [(secondary-handler (hash-table-ref/default events-hash-table event #f))]
+         (init-event class event primary-handler secondary-handler)))) events))
 
 (define* (make-listener class
-                        #:optional (args '())
-                        #:key      (primary-event-handler primary-event-handler))
-  "A simple wrapper around default guile-wayland's 'make' initializer to set all listener's handlers to default on on init no to set them all manually.
+          #:optional (args '())
+          #:key      (primary-handler primary-handler))
+ "A simple wrapper around default guile-wayland's 'make' initializer to set all listener's handlers to default on on init no to set them all manually.
 
-  @code{primary-event-handler} is a procedure of 3 arguments: listener-class (goops class), event-name (keyword), args (list of event arguments) it executes before supplied event handler (if any); if non handler supplied for the event, then only primary handler executes
+  @code{primary-handler} is a procedure of 3 arguments: listener-class (goops class), event-name (keyword), args (list of event arguments) it executes before supplied event handler (if any); if non handler supplied for the event, then only primary handler executes
+
+  @code{args} is an even-list of @code{event-name} @code{handler} where handler is a procedure or n-arity that accepts wayland listener's arguments.
 
   @example
   (make <wl-touch-listener>
@@ -88,10 +89,10 @@
   =>
   (make-listener <wl-touch-listener>)
   @end example"
-  (let* [(keywordize-event  (lambda (x) (slot-definition-init-keyword x)))
-         (normal-event?     (lambda (x) (not (equal? (keywordize-event x) #:%pointer))))
-         (events            (filter-map (lambda (e) (if (normal-event? e) (keywordize-event e) #f))
-                                        (class-slots class)))
-         (events-hash-table (even-list->hash-table args))]
-    (initialize-events-hash-table class events events-hash-table primary-event-handler)
-    (apply make class (hash-table->even-list events-hash-table))))
+ (let* [(keywordize-event  (lambda (x) (slot-definition-init-keyword x)))
+        (normal-event?     (lambda (x) (not (equal? (keywordize-event x) #:%pointer))))
+        (event-acc         (lambda (e) (if (normal-event? e) (keywordize-event e) #f)))
+        (events            (filter-map event-acc (class-slots class)))
+        (events-hash-table (even-list->hash-table args))]
+  (init-events-table class events events-hash-table primary-handler)
+  (apply make class (hash-table->even-list events-hash-table))))
