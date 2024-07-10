@@ -199,6 +199,26 @@
     (zwp-input-method-v2-commit-string (i <zwp-input-method-v2>) text)
     (zwp-input-method-v2-commit (i  <zwp-input-method-v2>) 1)))
 
-(insert "sas")
+(use-modules (ice-9 suspendable-ports))
+(install-suspendable-ports!)
 
-(get-message events-channel)
+(define (log port message)
+  (wait-until-port-writable-operation port)
+  (format port "~a ~%" message))
+
+(define* (handling-loop #:key port)
+ (let loop []
+  (let* [(message (get-message events-channel))]
+   (log port message)
+   (loop))))
+
+(define handling-thread
+ (call-with-new-thread
+   (lambda ()
+     (call-with-output-file "./output.txt"
+       (lambda (port) (handling-loop #:port port))))))
+
+;; (cancel-thread handling-thread)
+;; (stop)
+;; (insert "sas")
+;; (zwp-input-method-v2-commit-string (i <zwp-input-method-v2>) "kek")
