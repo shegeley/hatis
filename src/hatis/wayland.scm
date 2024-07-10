@@ -186,9 +186,11 @@
 (define thread (call-with-new-thread start))
 
 (define (stop)
+ (when (and (not (thread-exited? thread))
+            (i <wl-registry>))
   (cancel-thread thread)
   (wl-display-flush (i <wl-display>))
-  (wl-display-disconnect (i <wl-display>)))
+  (wl-display-disconnect (i <wl-display>))))
 
 (define (insert text)
   (when (string? text)
