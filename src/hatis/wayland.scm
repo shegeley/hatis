@@ -14,6 +14,8 @@
 
   #:use-module (fibers)
   #:use-module (fibers channels)
+  #:use-module (fibers operations)
+  #:use-module (fibers io-wakeup)
 
   #:use-module ((srfi srfi-1) #:hide (assoc)) ;; list base
   #:use-module (srfi srfi-125) ;; hash-tables
