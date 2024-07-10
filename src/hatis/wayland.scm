@@ -153,9 +153,7 @@
   (catch-interface (wl-display-connect))
 
   (unless (i <wl-display>)
-    (display "Unable to connect to wayland compositor")
-    (newline)
-    (exit -1)))
+    (error (format (current-error-port) "Unable to connect to wayland compositor~%"))))
 
 (define (get-registry)
   (catch-interface (wl-display-get-registry (i <wl-display>))))
