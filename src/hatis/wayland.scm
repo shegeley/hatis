@@ -174,7 +174,7 @@
  (while #t (roundtrip)))
 
 (define (start)
-  (setup)
+  ;; (setup)
   (connect)
   (get-registry)
   ;; roundtip here is needed to catch* all the interfaces inside registry-listener
