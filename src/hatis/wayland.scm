@@ -179,13 +179,13 @@
  (while #t (roundtrip)))
 
 (define (start)
-  (format #t "Starting the loop...")
+  (format #t "Starting the loop...\n")
   ;; (setup)
   (connect)
   (get-registry)
   ;; roundtip here is needed to catch* all the interfaces inside registry-listener
   ;; https://wayland.freedesktop.org/docs/html/apb.html#Client-classwl__display_1ab60f38c2f80980ac84f347e932793390
-  (format #t "Set all the stuff.")
+  (format #t "Set all the stuff.\n")
 
   (roundtrip)
   ;; (get-input-method)
@@ -206,6 +206,13 @@
     (zwp-input-method-v2-commit (i  <zwp-input-method-v2>) 1)))
 
 (define-public (run)
+  (use-modules
+   (wayland client display)
+   (wayland client protocol input-method)
+   (wayland client protocol wayland)
+   (wayland client protocol xdg-shell)
+   (wayland interface)
+   (wayland client proxy))
   (start))
 
 ;; (use-modules (ice-9 suspendable-ports))
