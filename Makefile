@@ -19,6 +19,9 @@ nrepl:
 repl:
 	guix shell ${guile}
 
+tm/run:
+	${guix-time-machine} -- shell ${guile} -e '((@ (hatis wayland) run))'
+
 tm/nrepl:
 	${guix-time-machine} -- shell ${guile} -e ${nrepl-exp}
 

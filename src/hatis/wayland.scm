@@ -75,10 +75,13 @@
 (define (sway:wrap-binder . args)
   (apply wrap-binder (append args (list #:versioning sway:versioning))))
 
+(define counter 0)
+
 (define channel-event-handler
   (lambda (listener-class event-name args)
-    (put-message events-channel
-      (list listener-class event-name args))))
+    (format #t "~a: ~a\n" counter
+            (list listener-class event-name args))
+    (set! counter (1+ counter))))
 
 (define* (make-listener* class #:optional (args '()))
   (make-listener class args #:primary-handler channel-event-handler))
@@ -176,16 +179,19 @@
  (while #t (roundtrip)))
 
 (define (start)
+  (format #t "Starting the loop...")
   ;; (setup)
   (connect)
   (get-registry)
   ;; roundtip here is needed to catch* all the interfaces inside registry-listener
   ;; https://wayland.freedesktop.org/docs/html/apb.html#Client-classwl__display_1ab60f38c2f80980ac84f347e932793390
+  (format #t "Set all the stuff.")
+
   (roundtrip)
-  (get-input-method)
+  ;; (get-input-method)
   (spin))
 
-(define thread (call-with-new-thread start))
+;; (define thread (call-with-new-thread start))
 
 (define (stop)
  (when (and (not (thread-exited? thread))
@@ -199,8 +205,11 @@
     (zwp-input-method-v2-commit-string (i <zwp-input-method-v2>) text)
     (zwp-input-method-v2-commit (i  <zwp-input-method-v2>) 1)))
 
-(use-modules (ice-9 suspendable-ports))
-(install-suspendable-ports!)
+(define-public (run)
+  (start))
+
+;; (use-modules (ice-9 suspendable-ports))
+;; (install-suspendable-ports!)
 
 (define (log port message)
   (wait-until-port-writable-operation port)
@@ -212,11 +221,11 @@
    (log port message)
    (loop))))
 
-(define handling-thread
- (call-with-new-thread
-   (lambda ()
-     (call-with-output-file "./output.txt"
-       (lambda (port) (handling-loop #:port port))))))
+;; (define handling-thread
+;;  (call-with-new-thread
+;;    (lambda ()
+;;      (call-with-output-file "./output.txt"
+;;        (lambda (port) (handling-loop #:port port))))))
 
 ;; (cancel-thread handling-thread)
 ;; (stop)
