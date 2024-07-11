@@ -30,9 +30,6 @@
 
   #:use-module (oop goops))
 
-(define (current-desktop)
-  (getenv "XDG_CURRENT_DESKTOP"))
-
 (define events-channel (make-channel))
 
 (define state
@@ -75,10 +72,17 @@
 (define (sway:wrap-binder . args)
   (apply wrap-binder (append args (list #:versioning sway:versioning))))
 
+(define current-op (current-output-port))
+
 (define channel-event-handler
   (lambda (listener-class event-name args)
-    (put-message events-channel
-      (list listener-class event-name args))))
+    (format current-op "hehe: ~a\n" (list listener-class event-name args))
+    (force-output current-op)
+    ;; (spawn-fiber
+    ;;  (lambda ()
+    ;;      (put-message events-channel
+    ;;                   (list listener-class event-name args))))
+    ))
 
 (define* (make-listener* class #:optional (args '()))
   (make-listener class args #:primary-handler channel-event-handler))
@@ -126,7 +130,8 @@
       (zwp-input-method-keyboard-grab-v2-release (keyboard))) |#)))
 
 (define (listeners)
-  "Here listeners is a proc because guile don't have clojure-alike `declare' and listeners are declared after their reference"
+  "Here listeners is a proc because guile don't have clojure-alike
+`declare' and listeners are declared after their reference"
   (alist->hash-table
     `((,<wl-seat> . ,seat-listener)
        (,<wl-touch> . ,touch-listener)
@@ -176,16 +181,15 @@
  (while #t (roundtrip)))
 
 (define (start)
+  (format current-op "Starting handling wayland events...\n")
   ;; (setup)
   (connect)
   (get-registry)
   ;; roundtip here is needed to catch* all the interfaces inside registry-listener
   ;; https://wayland.freedesktop.org/docs/html/apb.html#Client-classwl__display_1ab60f38c2f80980ac84f347e932793390
   (roundtrip)
-  (get-input-method)
+  ;; (get-input-method)
   (spin))
-
-(define thread (call-with-new-thread start))
 
 (define (stop)
  (when (and (not (thread-exited? thread))
@@ -207,16 +211,33 @@
   (format port "~a ~%" message))
 
 (define* (handling-loop #:key port)
- (let loop []
+ (let loop [(i 0)]
   (let* [(message (get-message events-channel))]
-   (log port message)
-   (loop))))
+    (format port "~a: ~a\n" i message)
+    ;; (log port message)
+    (force-output port)
+    (loop (1+ i)))))
 
-(define handling-thread
- (call-with-new-thread
-   (lambda ()
-     (call-with-output-file "./output.txt"
-       (lambda (port) (handling-loop #:port port))))))
+(define (comment)
+  (define ch (make-channel))
+
+  (define thread
+    (call-with-new-thread
+     (lambda ()
+       (run-fibers
+        (lambda ()
+          (start))))))
+  (cancel-thread thread)
+  (get-message events-channel)
+
+  (define handling-thread
+    (call-with-new-thread
+     (lambda ()
+       (call-with-output-file "./output.txt"
+         (lambda (port) (handling-loop #:port port))))))
+  (cancel-thread handling-thread)
+ 'hi)
+
 
 ;; (cancel-thread handling-thread)
 ;; (stop)
