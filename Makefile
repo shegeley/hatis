@@ -33,3 +33,6 @@ dev/guile-wayland/nrepl:
 	guix shell \
 	${guile} \
 	-e ${nrepl-exp}
+
+dev-sway:
+	sway -c files/sway/config

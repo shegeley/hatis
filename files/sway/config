@@ -1,0 +1,2 @@
+exec foot make tm/nrepl
+exec foot
