@@ -23,9 +23,9 @@
     (description "This is a very early-stage project (alpha-version) + a set of experiments of building HAckable Text Input System (HATIS)")
     (synopsis "")
     (arguments
-     (list #:source-directory "src"))
+     (list #:source-directory "."))
     (license license:gpl3+)
-    (source (local-file %source-dir "text-input-system-checkout" #:recursive? #t))
+    (source (local-file "./wlsrc" "text-input-system-checkout" #:recursive? #t))
     (build-system guile-build-system)
     (version "0.0.1-alpha")
     (propagated-inputs (list
