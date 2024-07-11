@@ -7,11 +7,11 @@ shell-default-args = \
 	-f guix/packages/guile-wayland.scm \
 	-f guix.scm \
 	-L guix \
-nrepl-exp = "((@ (nrepl server) run-nrepl-server) \#:port 7888)"
 	--rebuild-cache
+nrepl-exp = "((@ (ares server) run-nrepl-server))"
 
 # hatis
-guile = ${shell-default-args} -- guile
+guile = ${shell-default-args} -- guile -L ./src -L /data/abcdw/work/abcdw/guile-ares-rs/src/guile
 
 nrepl:
 	guix shell ${guile} -e ${nrepl-exp}
