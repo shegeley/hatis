@@ -101,3 +101,12 @@
         (events-hash-table (even-list->hash-table args))]
   (init-events-table class events events-hash-table primary-handler)
   (apply make class (hash-table->even-list events-hash-table))))
+
+(define (listener x)
+ "Return listener for x (dispatched by (class-of x)).
+  @example
+  (listener (make <wl-display>)) => #<<bytestructure-class> <wl-display-listener> 7f3da413ecf0>
+  @end example "
+ (let* [(name    (get-stripped-class-name (class-of x)))
+        (varname (string-append "<" name "-listener" ">"))]
+  (live-load varname)))
