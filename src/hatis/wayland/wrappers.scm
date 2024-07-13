@@ -15,7 +15,7 @@
   #:use-module (clojureism)
   #:use-module (oop goops)
 
-  #:export (wrap-binder add-listener make-listener))
+  #:export (wrap-binder listener add-listener make-listener))
 
 (define* (wrap-binder ;; just duplicate #:global registry listener arguments
           data
