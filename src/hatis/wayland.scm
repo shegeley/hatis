@@ -29,9 +29,6 @@
 
   #:use-module (oop goops))
 
-(define (current-desktop)
-  (getenv "XDG_CURRENT_DESKTOP"))
-
 (define events-channel (make-channel))
 
 (define state
