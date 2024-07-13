@@ -39,10 +39,7 @@
   (lambda (x) (string-drop-right x 1))))
 
 (define get-stripped-class-name
- (compose
-  strip-goops-<>
-  symbol->string
-  class-name))
+ (compose strip-goops-<> symbol->string class-name))
 
 (define (add-listener x listener)
   (let* [(class             (class-of x))
