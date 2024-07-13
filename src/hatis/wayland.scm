@@ -2,7 +2,6 @@
   #:use-module (wayland client display)
   #:use-module (wayland client protocol input-method)
   #:use-module (wayland client protocol wayland)
-  #:use-module (wayland client protocol xdg-shell)
   #:use-module (wayland interface)
   #:use-module (wayland client proxy)
 
