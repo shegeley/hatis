@@ -33,17 +33,22 @@
                                   1))]
     (wrap-proc (wl-registry-bind registry name interface% version))))
 
+(define strip-goops-<>
+ (compose ;; delete first + last character ("<"+">")
+  (lambda (x) (string-drop x 1))
+  (lambda (x) (string-drop-right x 1))))
+
+(define get-stripped-class-name
+ (compose
+  strip-goops-<>
+  symbol->string
+  class-name))
+
 (define (add-listener x listener)
-  (let* [(class (class-of x))
-         (get-name (compose
-                    string->symbol
-                    (compose ;; delete first + last character ("<"+">")
-                     (lambda (x) (string-drop x 1))
-                     (lambda (x) (string-drop-right x 1)))
-                    symbol->string
-                    class-name))
-         (name (get-name class))
-         (add-listener-proc (live-load (symbol-append name '-add-listener)))]
+  (let* [(class             (class-of x))
+         (name              (get-stripped-class-name class))
+         (procname          (string-append name "-add-listener"))
+         (add-listener-proc (live-load procname))]
     (add-listener-proc x listener)))
 
 (define (timestamp)
