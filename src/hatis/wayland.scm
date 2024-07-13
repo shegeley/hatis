@@ -28,8 +28,8 @@
 
 (define wayland-events-channel (make-channel))
 
-(define %display  (make-parameter #f))
-(define %registry (make-parameter #f))
+(define %display  #f)
+(define %registry #f)
 
 (define (sway:wrap-binder . args)
   (apply wrap-binder (append args (list #:versioning sway:versioning))))
@@ -60,20 +60,20 @@
     (list #:global registry:global-handler)))
 
 (define (connect)
-  (%display (wl-display-connect))
-  (unless (%display)
+  (set! %display (wl-display-connect))
+ (unless %display
     (error (format (current-error-port) "Unable to connect to wayland compositor~%"))))
 
 (define (get-registry)
  (begin
-  (%registry    (wl-display-get-registry (%display)))
-  (add-listener (%registry) registry-listener)))
+  (set! %registry (wl-display-get-registry %display))
+  (add-listener %registry registry-listener)))
 
-(define (roundtrip) (wl-display-roundtrip (%display)))
+(define (roundtrip) (wl-display-roundtrip %display))
 
 (define (spin) (while #t (roundtrip)))
 
-(define (start)
+(define (start!)
   (connect)
   (get-registry)
   ;; roundtip here is needed to catch* all the interfaces inside registry-listener
@@ -82,12 +82,17 @@
   ;; (get-input-method)
   (spin))
 
-(define thread (call-with-new-thread start))
+(define thread #f)
 
-(define (stop)
+(define (run!)
+ (set! thread (call-with-new-thread start!)))
+
+(define (stop!)
  (when (not (thread-exited? thread))
-  (cancel-thread thread)
-  (wl-display-flush      (%display))
-  (wl-display-disconnect (%display))))
+  (cancel-thread         thread)
+  (wl-display-flush      %display)
+  (wl-display-disconnect %display)))
+
+;; (run!)
 
 ;; (get-message wayland-events-channel)
