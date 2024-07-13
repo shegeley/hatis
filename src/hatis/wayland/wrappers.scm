@@ -15,7 +15,8 @@
   #:use-module (clojureism)
   #:use-module (oop goops)
 
-  #:export (wrap-binder listener add-listener make-listener))
+  #:export (wrap-binder listener add-listener make-listener
+            listener-class->event-source))
 
 (define* (wrap-binder ;; just duplicate #:global registry listener arguments
           data
@@ -40,6 +41,12 @@
 
 (define get-stripped-class-name
  (compose strip-goops-<> symbol->string class-name))
+
+(define listener-class->event-source ;; goops-class -> string
+ (let* [(suffix      "-listener")
+        (n           (string-length suffix))
+        (drop-suffix (lambda (s) (string-drop-right s n)))]
+  (compose drop-suffix strip-goops-<> symbol->string class-name)))
 
 (define (add-listener x listener)
   (let* [(class             (class-of x))
