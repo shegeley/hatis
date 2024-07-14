@@ -5,7 +5,6 @@
   #:use-module (wayland interface)
   #:use-module (wayland client proxy)
 
-  #:use-module ((hatis sway) #:prefix sway:)
   #:use-module (hatis wayland seat)
   #:use-module (hatis wayland keyboard)
   #:use-module (hatis wayland wrappers)
@@ -30,12 +29,7 @@
 
 (define %display  #f)
 
-
-#| |#
 (define %registry #f)
-
-(define (sway:wrap-binder . args)
-  (apply wrap-binder (append args (list #:versioning sway:versioning))))
 
 (define channel-event-handler
  (lambda args ;; (event-listener-class event-name event-args)
@@ -49,14 +43,20 @@
   (make-listener* (listener wayland-interface))))
 
 (define (try-add-listener* wayland-interface)
- "Not all interfaces might have listeners. For example: wl_compositor, wl_subcompositor, wl_shm_pool, wl_region, wl_subsurface"
+ "Not all interfaces might emit events.
+  wl_compositor, wl_subcompositor, wl_shm_pool, wl_region, wl_subsurface"
  (false-if-exception (add-listener* wayland-interface)))
 
 (define (handle-interface wayland-interface)
  (try-add-listener* wayland-interface))
 
-(define (registry:global-handler . args)
- (let* [(interface (false-if-exception (apply sway:wrap-binder args)))]
+(define (registry:try-init-interface data registry name interface version)
+ "Not all interfaces can init. Only those which was loaded with (use-wayland-protocol ...) in their module and required in the current module"
+ (false-if-exception (registry:init-interface data registry name interface version)))
+
+(define (registry:global-handler data registry name interface version)
+ "registry's #:global handler"
+ (let* [(interface (registry:try-init-interface data registry name interface version))]
   (when interface (handle-interface interface))))
 
 (define registry-listener
@@ -64,14 +64,16 @@
     (list #:global registry:global-handler)))
 
 (define (connect)
-  (set! %display (wl-display-connect))
+ (set! %display (wl-display-connect))
  (unless %display
-    (error (format (current-error-port) "Unable to connect to wayland compositor~%"))))
+  (error (format (current-error-port) "Unable to connect to wayland compositor~%"))))
 
 (define (get-registry)
  (begin
   (set! %registry (wl-display-get-registry %display))
-  (wl-display-sync %display) ;; To mark the end of the initial burst of events, the client can use the wl_display.sync request immediately after calling wl_display.get_registry.
+  ;; https://wayland.app/protocols/wayland#wl_registry
+  ;; «To mark the end of the initial burst of events, the client can use the wl_display.sync request immediately after calling wl_display.get_registry»
+  (wl-display-sync %display)
   (add-listener %registry registry-listener)))
 
 (define (roundtrip) (wl-display-roundtrip %display))
@@ -104,5 +106,7 @@
  (with-continuation-barrier (lambda () (get-message channel))))
 
 ;; (run!)
+
+;; (exit!)
 
 ;; (get-message* wayland-events-channel)

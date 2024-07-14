@@ -15,23 +15,19 @@
   #:use-module (clojureism)
   #:use-module (oop goops)
 
-  #:export (wrap-binder listener add-listener make-listener
+  #:export (registry:init-interface listener add-listener make-listener
             listener-class->event-source))
 
-(define* (wrap-binder ;; just duplicate #:global registry listener arguments
+(define* (registry:init-interface ;; just duplicate #:global registry listener arguments
           data
           registry
           name
           interface
-          version
-          #:key ;; + additional key-arguments with defaults
-          versioning)
+          version)
+ "Initialzie interface object using guile-wayland's xml-generated (wrap-<interface> (wl-registry-bind ...))"
   (let* [(interface- (_->- interface))
          (interface% (live-load (string-append "%" interface- "-interface")))
-         (wrap-proc (live-load (string-append "wrap-" interface-)))
-         (version (get versioning ;; default version is 1
-                                  (string->symbol interface-)
-                                  1))]
+         (wrap-proc (live-load (string-append "wrap-" interface-)))]
     (wrap-proc (wl-registry-bind registry name interface% version))))
 
 (define strip-goops-<>
@@ -49,6 +45,7 @@
   (compose drop-suffix strip-goops-<> symbol->string class-name)))
 
 (define (add-listener x listener)
+ "Wrapper to just cast (add-listener <wl-...> <listener>) instead of (wl-...-add-listener listener)"
   (let* [(class             (class-of x))
          (name              (get-stripped-class-name class))
          (procname          (string-append name "-add-listener"))
