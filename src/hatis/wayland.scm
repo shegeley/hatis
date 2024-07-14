@@ -29,6 +29,9 @@
 (define wayland-events-channel (make-channel))
 
 (define %display  #f)
+
+
+#| |#
 (define %registry #f)
 
 (define (sway:wrap-binder . args)
@@ -68,6 +71,7 @@
 (define (get-registry)
  (begin
   (set! %registry (wl-display-get-registry %display))
+  (wl-display-sync %display) ;; To mark the end of the initial burst of events, the client can use the wl_display.sync request immediately after calling wl_display.get_registry.
   (add-listener %registry registry-listener)))
 
 (define (roundtrip) (wl-display-roundtrip %display))
@@ -94,6 +98,11 @@
   (wl-display-flush      %display)
   (wl-display-disconnect %display)))
 
+(define (get-message* channel)
+ "A workaround to get-message from empty channel and not break the memort (error 139 sigsegv)
+  Won't remove message from the channel if it's the last one (will always return it)"
+ (with-continuation-barrier (lambda () (get-message channel))))
+
 ;; (run!)
 
-;; (get-message wayland-events-channel)
+;; (get-message* wayland-events-channel)
