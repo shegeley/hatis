@@ -11,7 +11,7 @@ shell-default-args = \
 nrepl-exp = "((@ (nrepl server) run-nrepl-server) \#:port 7888)"
 
 # hatis
-guile = ${shell-default-args} -- guile
+guile = ${shell-default-args} -- guile -L ./src
 
 nrepl:
 	guix shell ${guile} -e ${nrepl-exp}
