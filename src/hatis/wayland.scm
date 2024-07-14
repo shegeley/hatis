@@ -46,6 +46,7 @@
   (make-listener* (listener wayland-interface))))
 
 (define (try-add-listener* wayland-interface)
+ "Not all interfaces might have listeners. For example: wl_compositor, wl_subcompositor, wl_shm_pool, wl_region, wl_subsurface"
  (false-if-exception (add-listener* wayland-interface)))
 
 (define (handle-interface wayland-interface)
