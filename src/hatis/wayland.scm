@@ -87,7 +87,7 @@
 (define (run!)
  (set! thread (call-with-new-thread start!)))
 
-(define (stop!)
+(define (exit!)
  (when (not (thread-exited? thread))
   (cancel-thread         thread)
   (wl-display-flush      %display)
