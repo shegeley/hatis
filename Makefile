@@ -1,13 +1,15 @@
 # base stubs
 guix-time-machine = guix time-machine -C ./channels-lock.scm
+guile-ares-latest = "(begin (use-modules (guix transformations) (gnu packages guile-xyz)) ((options->transformation '((with-commit . \"guile-ares-rs=959fcb762ca95801072f81d4bd91b7436763f1c6\"))) guile-ares-rs))" # zero-value-conts handling introduced in this commit
+
 shell-default-args = \
 	guile-next \
-	guile-ares-rs \
+	-e ${guile-ares-latest} \
 	-f guix/packages/wlroots.scm \
 	-f guix/packages/guile-wayland.scm \
 	-f guix.scm \
 	-L guix \
-	--development --rebuild-cache
+	--development --rebuild-cache --no-substitutes
 nrepl-exp = "((@ (nrepl server) run-nrepl-server) \#:port 7888)"
 
 # hatis
