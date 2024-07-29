@@ -7,9 +7,10 @@ shell-default-args = \
 	-e ${guile-ares-latest} \
 	-f guix/packages/wlroots.scm \
 	-f guix/packages/guile-wayland.scm \
-	-f guix.scm \
+	-f guix/packages/wayland-protocols.scm \
 	-L guix \
-	--development --rebuild-cache --no-substitutes
+	--no-substitutes #--rebuild-cache
+
 nrepl-exp = "((@ (nrepl server) run-nrepl-server) \#:port 7888)"
 
 # hatis

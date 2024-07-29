@@ -12,6 +12,7 @@
  (packages bytestructure-class)
  (packages srfi srfi-125)
  (packages wlroots)
+ (packages wayland-protocols)
  (packages clojureism))
 
 (define %source-dir (dirname (current-filename)))
@@ -22,12 +23,13 @@
     (home-page "https://github.com/shegeley/hatis")
     (description "This is a very early-stage project (alpha-version) + a set of experiments of building HAckable Text Input System (HATIS)")
     (synopsis "")
-    (arguments (list #:source-directory "src/wayland"))
+    (arguments (list #:source-directory "src"))
     (license license:gpl3+)
     (source (local-file %source-dir "text-input-system-checkout" #:recursive? #t))
     (build-system guile-build-system)
     (version "0.0.1-alpha")
     (propagated-inputs (list
+                         hatis-wayland-protocols
                          guile-wayland
                          clojureism
                          guile-srfi-125))
