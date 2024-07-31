@@ -271,6 +271,87 @@ For now X support is not a priority. XWayland also has keyboard grab support. Se
 ** On ~input-popup-surface~ vs ~surface~ vs ~xdg-surface~
 Input-popup-surface is another breed. Won't cast to any other.
 ** [[https://github.com/swaywm/wlroots/blob/master/examples/input-method.c][input-method usage example from swaywm]]
+:PROPERTIES:
+:ID:       518ab312-dd50-41e8-b922-55b419adbd38
+:END:
+** [[https://wayland.freedesktop.org/docs/html/apb.html#Client-classwl__display][wl_display: roundtrip, dispatch, flush, sync]]
+- ~wl_display_roundtrip~ - Block until all pending request are processed by the server
+  #+begin_quote
+   Returns: The number of dispatched events on success or -1 on failure
+   This function blocks until the server has processed all currently issued requests by sending a request to the display server and waiting for a reply before returning.
+
+   This function blocks until the server has processed all currently issued requests by sending a request to the display server and waiting for a reply before returning.
+
+   This function uses wl_display_dispatch_queue() internally. It is not allowed to call this function while the thread is being prepared for reading events, and doing so will cause a dead lock.
+
+   Note: This function may dispatch other events being received on the default queue.
+  #+end_quote
+- ~wl_display_dispatch~ -  Dispatch events on the default event queue.
+  #+begin_quote
+  If the default event queue is empty, this function blocks until there are events to be read from the display fd. Events are read and queued on the appropriate event queues. Finally, events on the default event queue are dispatched. On failure -1 is returned and errno set appropriately.
+
+  In a multi threaded environment, do not manually wait using poll() (or equivalent) before calling this function, as doing so might cause a dead lock. If external reliance on poll() (or equivalent) is required, see wl_display_prepare_read_queue() of how to do so.
+
+  This function is thread safe as long as it dispatches the right queue on the right thread. It is also compatible with the multi thread event reading preparation API (see wl_display_prepare_read_queue()), and uses the equivalent functionality internally. It is not allowed to call this function while the thread is being prepared for reading events, and doing so will cause a dead lock.
+
+  Note: It is not possible to check if there are events on the queue or not. For dispatching default queue events without blocking, see wl_display_dispatch_pending(). See also: wl_display_dispatch_pending(), wl_display_dispatch_queue(), wl_display_read_events()
+  #+end_quote
+- ~wl_display_flush~ - Send all buffered requests on the display to the server.
+  #+begin_quote
+  Returns: The number of bytes sent on success or -1 on failure
+
+  Send all buffered data on the client side to the server. Clients should always call this function before blocking on input from the display fd. On success, the number of bytes sent to the server is returned. On failure, this function returns -1 and errno is set appropriately.
+
+  wl_display_flush() never blocks. It will write as much data as possible, but if all data could not be written, errno will be set to EAGAIN and -1 returned. In that case, use poll on the display file descriptor to wait for it to become writable again.
+  #+end_quote
+- ~wl_display_sync~ - asynchronous roundtrip
+  #+begin_quote
+  The sync request asks the server to emit the 'done' event on the returned wl_callback object. Since requests are handled in-order and events are delivered in-order, this can be used as a barrier to ensure all previous requests and the resulting events have been handled.
+
+  The object returned by this request will be destroyed by the compositor after the callback is fired and as such the client must not attempt to use it after that point.
+
+  The callback_data passed in the callback is the event serial.
+  #+end_quote
+---
+#+begin_quote
+«Instead wl_display_roundtrip is similar to wl_display_dispatch, but use a sync request to receive an event and prevent blocking» - [[https://bugs.launchpad.net/glmark2/+bug/1211076/comments/1][Axel Davy (@davyaxel)]]
+#+end_quote
+---
+roundtrip used in [[id:518ab312-dd50-41e8-b922-55b419adbd38][wlroots examples]] and dispatch is used in [[https://github.com/guile-wayland/guile-wayland/blob/b40c1d04112e92fce82be343a0af7bac5bc40fb2/example/wl-client-3.scm.in#L156][guile-wayland's source code examples]]
+---
+I'm still not sure what to use.
+** On wayland client event loop (incorporated in ~guile-wayland~)
+I don't yet understand wayland's client loop in full details. My current understanding is based on [[id:518ab312-dd50-41e8-b922-55b419adbd38][examples]].
+
+In my current (primitive) understanding interacting with wayland server as a client using ~guile-wayland~ has following important steps:
+1. ~wl-display-connect~. returns ~<wl-display>~ object. it neeeds to be saved somewhere (~%desktop~ global var, parameter, etc), so it could be called later
+2. ~get-registry~. get global objects from the registry via #:global event, handle them in the listener¸ save the %registry
+3. ~do-something~. handle your main programm logic using ~%registry~ the ~%display~
+4. ~spin~. endlessly calls ~wl-display-roundtrip~.
+
+Order of the last 2 steps are still suspisious to me. What is "do-something" is an of itself and endless loop?
+---
+Conceptually:
+#+begin_src scheme
+(define (connect) (set! %display (wl-display-connect)))
+(define (roundtrip) (wl-display-roundtrip %display))
+(define (spin) (while #t (roundtrip)))
+(define (get-registry)
+  (set! %registry (wl-display-get-registry %display))
+  ;; https://wayland.app/protocols/wayland#wl_registry
+  ;; «To mark the end of the initial burst of events, the client can use the wl_display.sync request immediately after calling wl_display.get_registry»
+  (wl-display-sync %display)
+  (add-listener %registry registry-listener)
+  ;; roundtip here is needed to catch* all the interfaces inside registry-listener
+  ;; https://wayland.freedesktop.org/docs/html/apb.html#Client-classwl__display_1ab60f38c2f80980ac84f347e932793390
+  (roundtrip))
+
+(define (start!)
+  (connect)
+  (get-registry)
+  (do-something)
+  (spin))
+#+end_src
 ** XKB character signature → utf-8 symbol
 [[https://stackoverflow.com/questions/8970098/how-to-map-a-x11-keysym-to-a-unicode-character][See]]
 * TODOS
