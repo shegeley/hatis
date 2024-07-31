@@ -68,13 +68,10 @@ there is even no "user" yet. btw "user" should also be defined in the context of
 - [ ] it has some basic UI; ui's at it's best should be described with lisp data strucrutes (be xml/json/yaml/somehing serializable) and have custom "resolvers"; default resolver is [[https://www.gnu.org/software/g-golf/][guile-g-golf]].
 - [ ] it has it's own REPL UI panel (not too ugly): user can see and interact with system in realtime (change keybingings in the input field of that very system and see the current "events" happening [keypresses, maybe buffers and contextes])
 * Dev Setup(s)
-- Emacs + [[https://git.sr.ht/~abcdw/guile-ares-rs][Ares]]/[[xhttps://git.sr.ht/~abcdw/emacs-arei][Arei]]
-- Guix System
-- Gnome on Wayland as primary WM
-- Sway launched in command line ("wm in a window"); from there I launch repl with ~make nrepl~ and I interact with it on Gnome with ~arei~
-- Programm writes dev/debug events to "output.txt"; can be read with ~tail -f output.txt | nl~
-
-  You can also launch it on native sway but as I'm still experimenting with keyboard grabbing and "dangerous" stuff like this you might end up loosing the control completely and having to restart the machine.
+Setup is under construction. It will be enhanced to reach true guix-reprodusability.
+- IDE: Emacs + [[https://git.sr.ht/~abcdw/guile-ares-rs][Ares]]/[[xhttps://git.sr.ht/~abcdw/emacs-arei][Arei]]
+- OS: Guix System
+Run the project with: ~make sway+nrepl~ or ~~make sway+tm/nrepl~~ to launch it with "windowed" sway or ~make nrepl~ to launch in on your's current wayland compositor.
 * Notes
 ** On state management
 As an ex-clojureist I see state as an atom contaning hash-map with hooks (add/remove-watch). That's how it should be managed in this project.
