@@ -37,5 +37,17 @@ dev/guile-wayland/nrepl:
 	${guile} \
 	-e ${nrepl-exp}
 
-dev-sway:
-	sway -c files/sway/config
+sway-nrepl-cmd = "exec foot make nrepl; exec foot"
+sway-tm/nrepl-cmd = "exec foot make tm/nrepl; exec foot"
+
+sway+nrepl: # have to create tmpfile for `sway -c`
+	$(eval TMP := $(shell mktemp))
+	@echo ${sway-nrepl-cmd} >> $(TMP)
+	sway -c $(TMP)
+	rm -rf $(TMP)
+
+sway+tm/nrepl:
+	$(eval TMP := $(shell mktemp))
+	@echo ${sway-tm/nrepl-cmd} >> $(TMP)
+	sway -c $(TMP)
+	rm -rf $(TMP)
