@@ -247,8 +247,10 @@ It would be nice to save "unfinished" text-input. But it's not possible in the c
 At max I can have the history of inserts and their identifiers (this/or that window/app).
 ** On using ~guile-wayland~ listener
 ALL EVENTS MUST HAVE HANDLERS. Or will result eror «listener function for opcode 3 of ... is NULL».
-
+---
 It would be nice to create some form of wrapper that appends ~(lambda args #t)~ for all unhandled events [low priority] in the ~guile-wayland~ project.
+---
+↑ [[id:476bea70-feb2-46b3-b3a7-217b66046ee0][done]] ~(@@ (hatis wayland wrappers) make-listener)~
 ** input-method keypress event keycode
 #+begin_quote
 The scancode from this event is the Linux evdev scancode. To translate this to an XKB scancode, you must add 8 to the evdev scancode.
@@ -381,6 +383,11 @@ The protocol:
 - does not guarantee that events sent to this client are exhaustive, a compositor may filter some events for its own consumption,
 - does not guarantee that events sent to this client are continuous, a compositor may change and reroute keyboard events while the grab is nominally active.
 #+end_quote
+** DONE Write a custom listener constructor that'd fill all the default events
+:PROPERTIES:
+:ID:       476bea70-feb2-46b3-b3a7-217b66046ee0
+:END:
+~(@@ (hatis wayland wrappers) make-listener)~
 ** DONE Add proper stop (+restart should be as a bonus) ability
 For now calling ~cancel-thread~ on the main thread won't "free" the catched/grabbed entities: input-method, keyboard-grab, etc.
 
