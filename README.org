@@ -273,13 +273,13 @@ Input-popup-surface is another breed. Won't cast to any other.
 Best case scenario: UI should be described as lisp data structure (xml?) and it should be possible to "resolve" it structure with different custom "resolvers" for gtk, qt, etc.
 ** TODO Figure out why do I have to supply versioning directly ~(hatis sway)~ :wayland:versioning:
 Why won't versioning info be parsed from the xml directly. Need to look at guile-wayland source code.
-** TODO Security policy (maybe DBUS?)
+** TODO Security policy (maybe DBUS?) [far future, low priority]
 Ask @avp (@artyom-poptsov) once again for clarifications. Pairing?
 ** TODO Draft a simple GTK-based UI to show interactive "input-repl" (events in real-time)
 ** TODO Q: If wl_pointer + wl_touch are "active" when text-input-method is actiaved?
 By-default input-method allows only keyboard-grab, not pointer or touch grabs.
 Q: Is it realiable to grab them globall (from the given wl_seat) and use during input to build interfaces?
-** TODO Figure out testing
+** TODO Figure out testing [high priority]
 How do I test it from non-personal PC? Simulate wayland when being ssh-access only. Will be needed for automations like github actions or something.
 ---
 It seems to be possible on very basic level.
@@ -288,8 +288,7 @@ See [[https://github.com/guile-wayland/guile-wayland/blob/master/tests/display.s
 Also learn how the sway, mutter and etc themselfs are tested
 ** TODO Parse keyboard-events ~uint~ with ~guile-libxkbcommon~ (or ~guile-libinput~?)
 What's ment by parsing? Turn key serial (unit) into ... what? xkb "entry"?
-
-** TODO Catch clipboard (~wl_data_control/source~ + ~wl_primary_selection~ or something)
+** TODO Catch clipboard (~wl_data_control/source~ + ~wl_primary_selection~ or something) [easy, high priority]
 For now just create default listener that will simply print events
 ---
 There is on ~wl_clipboard~, only "wl_data_source".
@@ -297,7 +296,7 @@ See:
 1. https://emersion.fr/blog/2020/wayland-clipboard-drag-and-drop/
 2. https://wayland.app/protocols/primary-selection-unstable-v1
 3. https://wayland.app/protocols/wlr-data-control-unstable-v1
-** TODO Get "window manager context" (see definitions) (~app_id~ + ~pid~ & etc)
+** TODO Get "window manager context" (see definitions) (~app_id~ + ~pid~ & etc) [easy, high priority]
 [[https://wayland.app/protocols/wlr-foreign-toplevel-management-unstable-v1#zwlr_foreign_toplevel_handle_v1:event:app_id][zwlr_foreign_toplevel_handle_v1:event:app_id]]
 ** TODO Get "file system context" (see definitions)
 ** TODO Parse xkb keymap format [low priority]
