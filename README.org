@@ -232,7 +232,7 @@ Slots are:
 It doesn't seems much usefull for now.
 
 ** [[https://wayland.app/protocols/text-cursor-position][Weston Unstable text cursor position]]
-Might be "the hiden key to everything" (getting + saving text-input context). At least it "knows" it's surface.
+Might be the key to [[id:8fce6ad3-309c-4354-bffc-dab11f37c6cc][distingushing text-inputs]] (getting + saving text-input context). At least it "knows" it's surface.
 ** Context of input method protocol
 What can I access with input method manager and input method itself is just wl_seat.
 
@@ -245,6 +245,9 @@ So, imagine the simplest usecase: redirecting the input to some socket and editi
 It would be nice to save "unfinished" text-input. But it's not possible in the current implementation of wayland (wlroots) input-method protocol.
 
 At max I can have the history of inserts and their identifiers (this/or that window/app).
+---
+Althought it might be possible using some hardcore clever memory tricks or later in new wayland protocols & versions.
+See the [[id:8fce6ad3-309c-4354-bffc-dab11f37c6cc][todo]].
 ** On using ~guile-wayland~ listener
 ALL EVENTS MUST HAVE HANDLERS. Or will result eror «listener function for opcode 3 of ... is NULL».
 ---
@@ -267,18 +270,13 @@ Xorg has it's own input-method protocol (standartized in 1993/4!) https://www.x.
 For now X support is not a priority. XWayland also has keyboard grab support. See [[id:\[\[id:8793f30e-76d8-4443-a048-fc760da8918e\]\]][the task]].
 ** On ~input-popup-surface~ vs ~surface~ vs ~xdg-surface~
 Input-popup-surface is another breed. Won't cast to any other.
-** [[httphttps://github.com/swaywm/wlroots/blob/master/examples/input-method.c][input-method usage example from swaywm]]
+** [[https://github.com/swaywm/wlroots/blob/master/examples/input-method.c][input-method usage example from swaywm]]
+** XKB character signature → utf-8 symbol
+[[https://stackoverflow.com/questions/8970098/how-to-map-a-x11-keysym-to-a-unicode-character][See]]
 * TODOS
-** TODO Draft a simple GTK-based UI to show on text-input
-Best case scenario: UI should be described as lisp data structure (xml?) and it should be possible to "resolve" it structure with different custom "resolvers" for gtk, qt, etc.
-** TODO Figure out why do I have to supply versioning directly ~(hatis sway)~ :wayland:versioning:
-Why won't versioning info be parsed from the xml directly. Need to look at guile-wayland source code.
 ** TODO Security policy (maybe DBUS?) [far future, low priority]
 Ask @avp (@artyom-poptsov) once again for clarifications. Pairing?
 ** TODO Draft a simple GTK-based UI to show interactive "input-repl" (events in real-time)
-** TODO Q: If wl_pointer + wl_touch are "active" when text-input-method is actiaved?
-By-default input-method allows only keyboard-grab, not pointer or touch grabs.
-Q: Is it realiable to grab them globall (from the given wl_seat) and use during input to build interfaces?
 ** TODO Figure out testing [high priority]
 How do I test it from non-personal PC? Simulate wayland when being ssh-access only. Will be needed for automations like github actions or something.
 ---
@@ -364,13 +362,14 @@ xkb_keymap {
 Into multiple hash-maps:
 1. keycodes to "keynames" [number - <AB10>]
 2. keyname -> group symbol
-** TODO XKB character signature -> utf-8 symbol
-[[https://stackoverflow.com/questions/8970098/how-to-map-a-x11-keysym-to-a-unicode-character][See]]
-** TODO Figure out if (how?) it's possible to distinguish one "text-input-context" from another
+---
+See: [[https://github.com/mwette/guile-wl-play/tree/0cda7797044515376686cdf35c318640373cfc26/kbd-parse][guile-wl-play/kdb-parse]] by @mwette
+** TODO Figure out if (how?) it's possible to distinguish one "text-input-context" from another [HARD]
 :PROPERTIES:
 :ID:       8fce6ad3-309c-4354-bffc-dab11f37c6cc
 :END:
-** TODO Also try [[https://wayland.app/protocols/xwayland-keyboard-grab-unstable-v1#zwp_xwayland_keyboard_grab_manager_v1:request:grab_keyboard][XWayland keyboard grabbing]] [low priority]
+** TODO Figure out proper event loop/event flow & handling using guile fibers [very high priority] (with @abcdw help)
+** TODO Also try [[https://wayland.app/protocols/xwayland-keyboard-grab-unstable-v1#zwp_xwayland_keyboard_grab_manager_v1:request:grab_keyboard][XWayland keyboard grabbing]] [very low priority]
 :PROPERTIES:
 :ID:       8793f30e-76d8-4443-a048-fc760da8918e
 :END:
@@ -2529,3 +2528,11 @@ See ~makeile:repl~
 * Questions
 ** Do I need to create sepate virtual keyboard when grabbing the input?
 For what? Kinda hotswap?
+** To grab wl_pointer+touch on active input-method?
+By-default input-method allows only keyboard-grab, not pointer or touch grabs.
+Is it realiable to grab them globall (from the given wl_seat) and use during input to build interfaces?
+* Resources
+1. [[https://bugaevc.gitbooks.io/writing-wayland-clients/content/][Writing Wayland Clients]] (@bugaevc)
+2. [[https://wayland-book.com/introduction.html][The Wayland Book]] (Drew DeVault)
+3. [[https://wayland.app/][Wayland.app]]
+4. [[https://github.com/mwette/guile-wl-play/tree/0cda7797044515376686cdf35c318640373cfc26/kbd-parse][guille-wl-play]] (@mwette)
