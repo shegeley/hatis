@@ -35,6 +35,10 @@
      (12 . datetime)
      (13 . terminal)) eqv?))
 
+(define (extract-change-cause value)
+"https://wayland.app/protocols/text-input-unstable-v3#zwp_text_input_v3:enum:change_cause"
+  (match value ((0 'input-method) (1 'other))))
+
 (define (extract-content-hint value)
   (hash-table-ref/default content-hints-table value #f))
 
