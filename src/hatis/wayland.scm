@@ -1,9 +1,12 @@
 (define-module (hatis wayland)
   #:use-module (wayland client display)
-  #:use-module (wayland client protocol input-method)
   #:use-module (wayland client protocol wayland)
   #:use-module (wayland interface)
   #:use-module (wayland client proxy)
+
+  #:use-module (wayland client protocol input-method)
+  ;; TODO: figure out why broken
+  ;; #:use-module (wayland client protocol foreign-toplevel-management)
 
   #:use-module (hatis wayland seat)
   #:use-module (hatis wayland keyboard)
