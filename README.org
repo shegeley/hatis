@@ -372,8 +372,81 @@ See:
 1. https://emersion.fr/blog/2020/wayland-clipboard-drag-and-drop/
 2. https://wayland.app/protocols/primary-selection-unstable-v1
 3. https://wayland.app/protocols/wlr-data-control-unstable-v1
-** TODO Get "window manager context" (see definitions) (~app_id~ + ~pid~ & etc) [easy, high priority]
-[[https://wayland.app/protocols/wlr-foreign-toplevel-management-unstable-v1#zwlr_foreign_toplevel_handle_v1:event:app_id][zwlr_foreign_toplevel_handle_v1:event:app_id]]
+** TODO Get "window manager context" (see definitions) (~app_id~ + ~pid~ & etc) [easy, high priority] [[https://wayland.app/protocols/wlr-foreign-toplevel-management-unstable-v1#zwlr_foreign_toplevel_handle_v1:event:app_id][zwlr_foreign_toplevel_handle_v1:event:app_id]]
+Met a very strange problem with zwlr_foreign_toplevel_v1 protocol.
+
+When requireing and using it in the ~(hatis wayland)~ with this code:
+#+begin_src scheme
+(define (registry:try-init-interface data registry name interface version)
+  "Not all interfaces can init. Only those which was loaded with (use-wayland-protocol ...) in their module and required in the current module"
+  (set! %raw-interfaces (cons (list data registry name interface version)
+                              %raw-interfaces))
+  (false-if-exception (registry:init-interface data registry name interface version)))
+
+(define (registry:global-handler data registry name interface version)
+  "registry's #:global handler"
+  (let* [(interface (registry:try-init-interface data registry name interface version))]
+    (when interface (handle-interface interface))))
+#+end_src
+where ~(registry:init-interface)~ from ~(hatis wayland wrappers)~: auto-wraps and auto-binds zwlr_…_toplevel_…
+
+Then programm fails with error 139 SIGSEGV. I don't understand why.
+
+Although it's possible to require the zlwr_ using it below the ~(run!)~ element with:
+#+begin_src scheme
+(define foreign-toplevel-manager
+  (find (match-lambda ((p r c name v)
+                      (equal? name "zwlr_foreign_toplevel_manager_v1")))
+        %raw-interfaces))
+
+(apply registry:global-handler foreign-toplevel-manager)
+#+end_src
+Evaling this (after the application launch) won't result and error (!) And will save ~<zwl-toplevel-…>~ into ~%interfaces~
+
+My first wild guess was: problem with sxml-match and ~allow-null~:
+#+begin_src xml
+<arg name="parent" type="object" interface="zwlr_foreign_toplevel_handle_v1" allow-null="true"/>
+#+end_src
+But I've once have had parsing errors with ~guile-wayland~ already and they were reported on ~(use-wayland-protocol ...)~ call... Tried anyway:
+#+begin_verse
+master 53b3676b8bc1128f7d159a2aee00526046951ebf
+Author:     Grigory Shepelev <shegeley@gmail.com>
+AuthorDate: Sun Aug 4 23:32:17 2024 +0300
+Commit:     Grigory Shepelev <shegeley@gmail.com>
+CommitDate: Sun Aug 4 23:32:17 2024 +0300
+
+Parent:     b40c1d0 util: define-wl-{server,client}-procedure: Set name.
+Merged:     master
+Contained:  master
+Follows:    v0.0.2 (33)
+
+(modules wayland scanner) allow-null -> allow-null? [wild guess]
+
+1 file changed, 2 insertions(+), 2 deletions(-)
+modules/wayland/scanner.scm | 4 ++--
+
+modified   modules/wayland/scanner.scm
+@@ -99,7 +99,7 @@
+             (arg (@ (type ,arg-type)
+                     (name ,(_->- -> arg-name))
+                     (interface (,arg-interface-type #f))
+-                    (allow-null (,allow-null #f)))) ...)
++                    (allow-null? (,allow-null #f)))) ...)
+      (%make-message (_->- name)
+                     (and type (string=? type "destructor"))
+                     since
+@@ -118,7 +118,7 @@
+               (arg (@ (type ,arg-type)
+                       (name ,(_->- -> arg-name))
+                       (interface (,arg-interface-type #f))
+-                      (allow-null (,allow-null #f)))) ...)
++                      (allow-null? (,allow-null #f)))) ...)
+      (%make-message (_->- name)
+                     (and type (string=? type "destructor"))
+                     since 'request
+#+end_verse
+It was not the issue.
+*** TODO Create a reprodusible PR and send to ~guile-wayland~
 ** TODO Get "file system context" (see definitions)
 ** TODO Parse xkb keymap format [low priority]
 Having a keypress uid I can translate it to any character with any keyboard mapping basically.
