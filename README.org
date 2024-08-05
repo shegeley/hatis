@@ -314,9 +314,9 @@ Input-popup-surface is another breed. Won't cast to any other.
 «Instead wl_display_roundtrip is similar to wl_display_dispatch, but use a sync request to receive an event and prevent blocking» - [[https://bugs.launchpad.net/glmark2/+bug/1211076/comments/1][Axel Davy (@davyaxel)]]
 #+end_quote
 ---
-roundtrip used in [[id:518ab312-dd50-41e8-b922-55b419adbd38][wlroots examples]] and dispatch is used in [[https://github.com/guile-wayland/guile-wayland/blob/b40c1d04112e92fce82be343a0af7bac5bc40fb2/example/wl-client-3.scm.in#L156][guile-wayland's source code examples]]
+dispatch is used in [[id:518ab312-dd50-41e8-b922-55b419adbd38][wlroots examples]], [[https://github.com/guile-wayland/guile-wayland/blob/b40c1d04112e92fce82be343a0af7bac5bc40fb2/example/wl-client-3.scm.in#L156][guile-wayland's source code examples]] and in [[https://wayland-book.com/introduction.html][the Wayland Book]]
 ---
-I'm still not sure what to use.
+seems like ~dispatch~ is the way
 ** On wayland client event loop (incorporated in ~guile-wayland~)
 I don't yet understand wayland's client loop in full details. My current understanding is based on [[id:518ab312-dd50-41e8-b922-55b419adbd38][examples]].
 
@@ -324,7 +324,7 @@ In my current (primitive) understanding interacting with wayland server as a cli
 1. ~wl-display-connect~. returns ~<wl-display>~ object. it neeeds to be saved somewhere (~%desktop~ global var, parameter, etc), so it could be called later
 2. ~get-registry~. get global objects from the registry via #:global event, handle them in the listener¸ save the %registry
 3. ~do-something~. handle your main programm logic using ~%registry~ the ~%display~
-4. ~spin~. endlessly calls ~wl-display-roundtrip~.
+4. ~spin~. endlessly calls ~wl-display-dispatch~.
 
 Order of the last 2 steps are still suspisious to me. What is "do-something" is an of itself and endless loop?
 ---
@@ -332,7 +332,7 @@ Conceptually:
 #+begin_src scheme
 (define (connect) (set! %display (wl-display-connect)))
 (define (roundtrip) (wl-display-roundtrip %display))
-(define (spin) (while #t (roundtrip)))
+(define (spin) (while #t (wl-display-dispatch %display))
 (define (get-registry)
   (set! %registry (wl-display-get-registry %display))
   ;; https://wayland.app/protocols/wayland#wl_registry
