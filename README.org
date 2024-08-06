@@ -446,7 +446,22 @@ modified   modules/wayland/scanner.scm
                      since 'request
 #+end_verse
 It was not the issue.
-*** TODO Create a reprodusible PR and send to ~guile-wayland~
+---
+TODO [?] Create a reprodusible PR and send to ~guile-wayland~ [?]
+---
+See [[https://github.com/swaywm/wlroots/blob/0855cdacb2eeeff35849e2e9c4db0aa996d78d10/examples/foreign-toplevel.c#L256C2-L259C3][wlroots toplevel example]]:
+#+begin_src c
+static void toplevel_manager_handle_toplevel(void *data,
+		struct zwlr_foreign_toplevel_manager_v1 *toplevel_manager,
+		struct zwlr_foreign_toplevel_handle_v1 *zwlr_toplevel) {
+	struct toplevel_v1 *toplevel = calloc(1, sizeof(struct toplevel_v1)); // Calloc for toplevel!
+	if (!toplevel) {
+		fprintf(stderr, "Failed to allocate memory for toplevel\n");
+		return;
+	}
+        …
+}
+#+end_src
 ** TODO Get "file system context" (see definitions)
 ** TODO Parse xkb keymap format [low priority]
 Having a keypress uid I can translate it to any character with any keyboard mapping basically.
