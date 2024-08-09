@@ -447,7 +447,7 @@ modified   modules/wayland/scanner.scm
 #+end_verse
 It was not the issue.
 ---
-TODO [?] Create a reprodusible PR and send to ~guile-wayland~ [?]
+DONE [[https://github.com/guile-wayland/guile-wayland/issues/13][Create a reprodusible example + issue and send to ~guile-wayland~]]
 ---
 See [[https://github.com/swaywm/wlroots/blob/0855cdacb2eeeff35849e2e9c4db0aa996d78d10/examples/foreign-toplevel.c#L256C2-L259C3][wlroots toplevel example]]:
 #+begin_src c
