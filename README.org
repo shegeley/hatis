@@ -477,6 +477,42 @@ Options:
 1. [best] investigate ~gdb~ (gnu debugger) and especially SIGSEGV-catching part. What I really want from it is a trace of all guile scheme calls down to guile-wayland untill SIGSEGV.
 2. [radical, uncomfortable] use ipc-sway for this exact problem (getting current toplevel)
 3. [very low chance] drop some of the latest guile-wayland commits (HEAD~2-HEAD~4 or so) that are about low-memory management
+---
+GNU Debugger is more complext than I thought. I still don't understand how to launch it properly.
+
+I wanted to launch it watching nrepl process. Then connect in emacs, eval-buffer and see the backtrace (hoping it'd give something to me).
+
+But I couldn't figure out how. It seems the simplest way to use GDB like that is to compile the programm, get binary ~programm.out~ file and launch the gdb on it.
+
+But there is no way to get it with guile-build-system. guile-build-system produces ~/lib/.../….go~ files and ~/share/guile/…/….scm~ files. And ~.go~ files (ELFs) aren't recognized as executables by GDB.
+
+I have to change the build system to gnu-build-system and write automake file in order to get the single executable right.
+
+Posted on mastodon that I'm having troubles with guile + gdb. One guy [[https://fosstodon.org/deck/@ramin_hal9001@emacs.ch/113034248882817135][poste]]d a vague advice:
+
+#+begin_quote
+@shegeley you should probably install the developer build of Guile, something like "guile-3.0-dev" in the Debian (and derivative) Linux repositories.
+
+Then what I do is actually run the whole Guile interpreter in GDB. Here is a script I use, I call it "gdb-guile.sh":
+
+#! /bin/sh
+gdb \
+  -ex 'handle SIGXCPU nostop' \
+  -ex 'handle SIGPWR nostop' \
+  -ex 'run' \
+  --args \
+    guile "${@}";
+
+To run it, I simply type
+
+./gdb-guile.sh my-program.scm --args=to --my=program
+
+If you use Emacs and Geiser, you can try setting the "geiser-guile-binary" variable to the full path of "gdb-guile.sh", I ususally set it in my ".dir-locals.el".
+#+end_quote
+
+But it didn't helped much. I didn't get how to do this properly with nrepl.
+
+I also [[https://forum.systemcrafters.net/t/scheme-guile-debugging/484/3][rant]] about the situation with the lack of guile + gdb examples in SystemCrafters forum.
 ** TODO Get "file system context" (see definitions)
 ** TODO Parse xkb keymap format [low priority]
 Having a keypress uid I can translate it to any character with any keyboard mapping basically.
