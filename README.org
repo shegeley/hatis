@@ -375,7 +375,7 @@ See:
 ** TODO Get "window manager context" (see definitions) (~app_id~ + ~pid~ & etc) [easy, high priority] [[https://wayland.app/protocols/wlr-foreign-toplevel-management-unstable-v1#zwlr_foreign_toplevel_handle_v1:event:app_id][zwlr_foreign_toplevel_handle_v1:event:app_id]]
 Met a very strange problem with zwlr_foreign_toplevel_v1 protocol.
 
-When requireing and using it in the ~(hatis wayland)~ with this code:
+When require and using it in the ~(hatis wayland)~ with this code:
 #+begin_src scheme
 (define (registry:try-init-interface data registry name interface version)
   "Not all interfaces can init. Only those which was loaded with (use-wayland-protocol ...) in their module and required in the current module"
@@ -462,6 +462,21 @@ static void toplevel_manager_handle_toplevel(void *data,
         …
 }
 #+end_src
+---
+UPD: last (on <2024-08-27 Вт>) Z572's [[https://github.com/guile-wayland/guile-wayland/commit/cf96a8a5d710addb330021c1d3b21738447b2efb][commi]]t seems to relate, but won't do anything.
+---
+UPD: the problem is not even in the #:toplevel event, but in ~<…-toplevel-manager…>~ itself. Once inited via ~registry:init-interface~, even without event-listener it will crush the programm on (roundtrip) or (dispatch) with SIGSEGV.
+---
+What I've tried:
+1. ~(gc-disable)~. won't help
+2. Different manipulations inside ~#:toplevel~ lambda: check if pointer, pk, just return #t, immidiatly add listener to the handle, etc. nothing helps.
+3. ~(use-modules (system vm trace))~, call-with-trace; won't give anything before SIGSEGV
+4. I thought the problem might be that I launch sway "in a window", not natively; tried "native" launch (as a primary WM). nothing
+---
+Options:
+1. [best] investigate ~gdb~ (gnu debugger) and especially SIGSEGV-catching part. What I really want from it is a trace of all guile scheme calls down to guile-wayland untill SIGSEGV.
+2. [radical, uncomfortable] use ipc-sway for this exact problem (getting current toplevel)
+3. [very low chance] drop some of the latest guile-wayland commits (HEAD~2-HEAD~4 or so) that are about low-memory management
 ** TODO Get "file system context" (see definitions)
 ** TODO Parse xkb keymap format [low priority]
 Having a keypress uid I can translate it to any character with any keyboard mapping basically.
