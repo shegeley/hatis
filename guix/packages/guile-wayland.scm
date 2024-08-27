@@ -23,8 +23,8 @@
  #:use-module (packages wlroots))
 
 (define url "https://github.com/guile-wayland/guile-wayland")
-(define commit "b40c1d04112e92fce82be343a0af7bac5bc40fb2")
-(define hash "1dqax8ql2z2a2b7kgj54lw97r1rj0izgb4bzsrmfk8xm594qrsgv")
+(define commit "cf96a8a5d710addb330021c1d3b21738447b2efb")
+(define hash "1p07qs7pkkbhqa6568pfr44m1q1f783vh0a7nixhsmfpnv2fg8qr")
 
 (define-public guile-wayland
  (package
