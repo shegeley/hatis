@@ -111,11 +111,9 @@
 (define (start!)
   (connect)
   (get-registry)
-  ;; roundtip here is needed to catch* all the interfaces inside registry-listener
-  ;; https://wayland.freedesktop.org/docs/html/apb.html#Client-classwl__display_1ab60f38c2f80980ac84f347e932793390
-  (roundtrip)
   ;; (get-input-method)
   (spin))
+
 ;; control flow
 
 (define thread #f)
