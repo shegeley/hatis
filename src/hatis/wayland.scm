@@ -28,15 +28,26 @@
 
   #:use-module (oop goops))
 
-(define wayland-events-channel (make-channel))
+;; (define wayland-events-channel (make-channel))
 
-(define %display  #f)
+(define %display         #f)
+(define %registry        #f)
+(define %log            '())
+(define %raw-interfaces '())
+(define %interfaces     '())
 
-(define %registry #f)
+;; log
+(define* (get-events #:optional (interface #f))
+  (filter (lambda (e)
+            (if interface
+                (eq? (listener interface) (first e))
+                #t)) %log))
 
 (define channel-event-handler
  (lambda args ;; (event-listener-class event-name event-args)
-  (put-message wayland-events-channel args)))
+  ;; (put-message wayland-events-channel args)
+  (set! %log (cons args %log))
+  #t))
 
 (define* (make-listener* class #:optional (args '()))
   (make-listener class args #:primary-handler channel-event-handler))
@@ -51,7 +62,8 @@
  (false-if-exception (add-listener* wayland-interface)))
 
 (define (handle-interface wayland-interface)
- (try-add-listener* wayland-interface))
+ (try-add-listener* wayland-interface)
+ (catch-interface! wayland-interface))
 
 (define (registry:try-init-interface data registry name interface version)
  "Not all interfaces can init. Only those which was loaded with (use-wayland-protocol ...) in their module and required in the current module"
