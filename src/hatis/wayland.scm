@@ -65,9 +65,22 @@
  (try-add-listener* wayland-interface)
  (catch-interface! wayland-interface))
 
+;; %interfaces
+(define (get-interface class)
+  (find (lambda (x) (eq? (class-of x) class)) %interfaces))
+
+(define i get-interface)
+
+(define (catch-interface! interface)
+  (set! %interfaces (cons interface %interfaces)))
+
+;; registry
+
 (define (registry:try-init-interface data registry name interface version)
- "Not all interfaces can init. Only those which was loaded with (use-wayland-protocol ...) in their module and required in the current module"
- (false-if-exception (registry:init-interface data registry name interface version)))
+  "Not all interfaces can init. Only those which was loaded with (use-wayland-protocol ...) in their module and required in the current module"
+  (set! %raw-interfaces (cons (list data registry name interface version)
+                             %raw-interfaces))
+  (false-if-exception (registry:init-interface data registry name interface version)))
 
 (define (registry:global-handler data registry name interface version)
  "registry's #:global handler"
@@ -78,22 +91,22 @@
   (make-listener* <wl-registry-listener>
     (list #:global registry:global-handler)))
 
+;; main event loop
 (define (connect)
  (set! %display (wl-display-connect))
  (unless %display
   (error (format (current-error-port) "Unable to connect to wayland compositor~%"))))
 
-(define (get-registry)
- (begin
-  (set! %registry (wl-display-get-registry %display))
-  ;; https://wayland.app/protocols/wayland#wl_registry
-  ;; «To mark the end of the initial burst of events, the client can use the wl_display.sync request immediately after calling wl_display.get_registry»
-  (wl-display-sync %display)
-  (add-listener %registry registry-listener)))
-
 (define (roundtrip) (wl-display-roundtrip %display))
+(define (sync)      (wl-display-sync %display))
+(define (dispatch)  (wl-display-dispatch %display))
+(define (spin)      (while #t (dispatch)))
 
-(define (spin) (while #t (roundtrip)))
+(define (get-registry)
+  (set! %registry (wl-display-get-registry %display))
+  (sync)
+  (add-listener %registry registry-listener)
+  (roundtrip))
 
 (define (start!)
   (connect)
@@ -103,25 +116,37 @@
   (roundtrip)
   ;; (get-input-method)
   (spin))
+;; control flow
 
 (define thread #f)
 
 (define (run!)
- (set! thread (call-with-new-thread start!)))
+  (if thread
+      (restart!)
+      (set! thread (call-with-new-thread start!))))
 
 (define (exit!)
- (when (not (thread-exited? thread))
+ (when (and thread (not (thread-exited? thread)))
   (cancel-thread         thread)
+  (set!         thread   #f)
+  (set!    %interfaces   '())
+  (set!           %log   '())
   (wl-display-flush      %display)
   (wl-display-disconnect %display)))
 
-(define (get-message* channel)
- "A workaround to get-message from empty channel and not break the memort (error 139 sigsegv)
-  Won't remove message from the channel if it's the last one (will always return it)"
- (with-continuation-barrier (lambda () (get-message channel))))
+(define (restart!) (exit!) (run!))
 
 ;; (run!)
 
-;; (exit!)
+;; (get-events)
 
-;; (get-message* wayland-events-channel)
+;; %raw-interfaces
+
+;; %interfaces
+
+;; (roundtrip)
+
+;; (use-modules (system vm trace))
+
+;; (roundtrip)
+
