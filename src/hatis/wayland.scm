@@ -150,3 +150,19 @@
 
 ;; (roundtrip)
 
+#| ;; STASH
+(define (get-input-method)
+(unless (i <zwp-input-method-manager-v2>)
+(error (format #f "Can't access input-manager!")))
+
+
+(handle-interface
+(zwp-input-method-manager-v2-get-input-method
+(i <zwp-input-method-manager-v2>)
+(i <wl-seat>))))
+
+(define (get-keyboard)
+(let* [(seat     (i <wl-seat>))
+(keyboard (wl-seat-get-keyboard seat))]
+(handle-interface keyboard)))
+|#
