@@ -11,7 +11,7 @@ shell-default-args = \
 	-L guix \
 	--no-substitutes #--rebuild-cache
 
-nrepl-exp = "((@ (nrepl server) run-nrepl-server) \#:port 7888)"
+nrepl-exp = "((@ (ares server) run-nrepl-server) \#:port 7888)"
 
 # hatis
 guile = ${shell-default-args} -- guile -L ./src
