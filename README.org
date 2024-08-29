@@ -513,6 +513,346 @@ If you use Emacs and Geiser, you can try setting the "geiser-guile-binary" varia
 But it didn't helped much. I didn't get how to do this properly with nrepl.
 
 I also [[https://forum.systemcrafters.net/t/scheme-guile-debugging/484/3][rant]] about the situation with the lack of guile + gdb examples in SystemCrafters forum.
+---
+Did more experimentation with GDB.
+
+At first I tried to compile guile into binary files and was surprised that it can only be compiled to it's VM bytecode. Just like java produces .jar files that should run with java then. I kinda new that guile has a VM before, but didn't realized what it actually means.
+
+Compiling with ~guild compile~ just gave me guile vm-code file and it's not standalone executable to run from cli like ~./programm~.
+
+So I had to lauch like this (from my Makefile):
+#+begin_src makefile
+gdb:
+    guix shell gdb ${shell-default-args} \
+    -- gdb \
+    -ex "handle SIGXCPU nostop" \
+    -ex "handle SIGPWR nostop" \
+    -ex "run -L ./src -s ./src/hatis/wayland.scm" \
+    guile
+#+end_src
+
+That gave me the output below:
+#+begin_src
+<shegeley@prime:~/Projects/hatis>
+zsh/3 3416 [2]  (git)-[toplevel-manager-debug]-% make gdb
+guix shell gdb guile-next guile-ares-rs -f guix/packages/wlroots.scm -f guix/packages/guile-wayland.scm -f guix/packages/wayland-protocols.scm -L guix --no-substitutes --rebuild-cache \
+-- gdb \
+-ex "handle SIGXCPU nostop" \
+-ex "handle SIGPWR nostop" \
+-ex "run -L ./src -s ./src/hatis/wayland.scm" \
+guile
+^[	GNU gdb (GDB) 14.2
+Copyright (C) 2023 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "x86_64-unknown-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<https://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+/home/shegeley/.config/gdb/gdbinit:4: Error in sourced command file:
+integer 3200000000000 out of range ;; NOTE: tried to set history file too big, shouldn't affect anything
+Reading symbols from guile...
+(No debugging symbols found in guile)
+Signal        Stop	Print	Pass to program	Description
+SIGXCPU       No	Yes	Yes		CPU time limit exceeded
+Signal        Stop	Print	Pass to program	Description
+SIGPWR        No	Yes	Yes		Power fail/restart
+Starting program: /gnu/store/pa3ny4rhwskpgw656yis9431v37d3744-profile/bin/guile -L ./src -s ./src/hatis/wayland.scm
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/gnu/store/ln6hxqjvz6m9gdd9s97pivlqck7hzs99-glibc-2.35/lib/libthread_db.so.1".
+[New Thread 0x7ffff7000640 (LWP 15355)]
+[New Thread 0x7ffff6600640 (LWP 15356)]
+[New Thread 0x7ffff5c00640 (LWP 15357)]
+[New Thread 0x7ffff5200640 (LWP 15358)]
+[New Thread 0x7ffff4800640 (LWP 15359)]
+[New Thread 0x7ffff3e00640 (LWP 15360)]
+[New Thread 0x7ffff3400640 (LWP 15361)]
+[New Thread 0x7ffff2a00640 (LWP 15362)]
+WARNING: (srfi srfi-126): imported module (rnrs hashtables) overrides core binding `symbol-hash'
+WARNING: srfi-69-style:make-hash-table
+    is deprecated by SRFI 125.  See
+    http://srfi.schemers.org/srfi-125/srfi-125.html
+
+Thread 1 "guile" received signal SIGSEGV, Segmentation fault.
+0x00007ffff3e2b4b5 in ?? () from /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+(gdb) frame
+#0  0x00007ffff3e2b4b5 in ?? () from /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+(gdb)
+#0  0x00007ffff3e2b4b5 in ?? () from /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+(gdb) dir /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/include/
+Source directories searched: /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/include:$cdir:$cwd
+(gdb) frame
+#0  0x00007ffff3e2b4b5 in ?? () from /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+(gdb) dir /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/
+Source directories searched: /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib:/gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/include:$cdir:$cwd
+(gdb) frame
+#0  0x00007ffff3e2b4b5 in ?? () from /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+(gdb) info frame
+Stack level 0, frame at 0x7fffffffadb0:
+ rip = 0x7ffff3e2b4b5; saved rip = 0x7ffff3e2bd5f
+ called by frame at 0x7fffffffae50
+ Arglist at 0x7fffffffad68, args:
+ Locals at 0x7fffffffad68, Previous frame's sp is 0x7fffffffadb0
+ Saved registers:
+  rbx at 0x7fffffffad80, rbp at 0x7fffffffad88, r12 at 0x7fffffffad90, r13 at 0x7fffffffad98, r14 at 0x7fffffffada0, rip at 0x7fffffffada8
+(gdb)   info locals
+No symbol table info available.
+(gdb) up
+#1  0x00007ffff3e2bd5f in ?? () from /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+(gdb) up
+#2  0x00007ffff3e29d68 in wl_display_read_events () from /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+(gdb) up
+#3  0x00007ffff3e2a601 in wl_display_dispatch_queue () from /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+(gdb) up
+#4  0x00007ffff7e00052 in ?? () from /gnu/store/1lzfbbwcpyngm81v44fr34253b8is7zr-libffi-3.4.4/lib/libffi.so.8
+(gdb) up
+#5  0x00007ffff7dfec85 in ?? () from /gnu/store/1lzfbbwcpyngm81v44fr34253b8is7zr-libffi-3.4.4/lib/libffi.so.8
+(gdb) up
+#6  0x00007ffff7dff68e in ffi_call () from /gnu/store/1lzfbbwcpyngm81v44fr34253b8is7zr-libffi-3.4.4/lib/libffi.so.8
+(gdb) up
+#7  0x00007ffff7f5f527 in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#8  0x00007ffff7f4f855 in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#9  0x00007ffff7f41676 in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#10 0x00007ffff7f4f6b5 in scm_call_n () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#11 0x00007ffff7eb7b77 in scm_primitive_eval () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#12 0x00007ffff7ebdf46 in scm_eval () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#13 0x00007ffff7f1e366 in scm_shell () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#14 0x00007ffff7ecf0fc in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#15 0x00007ffff7eb5eca in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#16 0x00007ffff7f4160f in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#17 0x00007ffff7f4f6b5 in scm_call_n () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#18 0x00007ffff7eb767a in scm_call_2 () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#19 0x00007ffff7f60762 in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#20 0x00007ffff7f3bdcf in scm_c_catch () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#21 0x00007ffff7eb85f6 in scm_c_with_continuation_barrier () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#22 0x00007ffff7f3afe9 in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#23 0x00007ffff7e1c7fa in GC_call_with_stack_base () from /gnu/store/ypj54hl8dign6rqwkcngqy37qz4zvl5j-libgc-8.2.2/lib/libgc.so.1
+(gdb) up
+#24 0x00007ffff7f35398 in scm_with_guile () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#25 0x00007ffff7ed8175 in scm_boot_guile () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) up
+#26 0x00000000004010f7 in ?? ()
+(gdb) up
+#27 0x00007ffff79441f7 in __libc_start_call_main () from /gnu/store/ln6hxqjvz6m9gdd9s97pivlqck7hzs99-glibc-2.35/lib/libc.so.6
+(gdb) up
+#28 0x00007ffff79442ac in __libc_start_main_impl () from /gnu/store/ln6hxqjvz6m9gdd9s97pivlqck7hzs99-glibc-2.35/lib/libc.so.6
+(gdb) up
+#29 0x0000000000401171 in ?? ()
+(gdb) up
+Initial frame selected; you cannot go up.
+(gdb) down
+#28 0x00007ffff79442ac in __libc_start_main_impl () from /gnu/store/ln6hxqjvz6m9gdd9s97pivlqck7hzs99-glibc-2.35/lib/libc.so.6
+(gdb) d
+(gdb) d
+(gdb) down
+#27 0x00007ffff79441f7 in __libc_start_call_main () from /gnu/store/ln6hxqjvz6m9gdd9s97pivlqck7hzs99-glibc-2.35/lib/libc.so.6
+(gdb) down
+#26 0x00000000004010f7 in ?? ()
+(gdb) down
+#25 0x00007ffff7ed8175 in scm_boot_guile () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#24 0x00007ffff7f35398 in scm_with_guile () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#23 0x00007ffff7e1c7fa in GC_call_with_stack_base () from /gnu/store/ypj54hl8dign6rqwkcngqy37qz4zvl5j-libgc-8.2.2/lib/libgc.so.1
+(gdb) down
+#22 0x00007ffff7f3afe9 in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#21 0x00007ffff7eb85f6 in scm_c_with_continuation_barrier () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#20 0x00007ffff7f3bdcf in scm_c_catch () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#19 0x00007ffff7f60762 in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#18 0x00007ffff7eb767a in scm_call_2 () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#17 0x00007ffff7f4f6b5 in scm_call_n () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#16 0x00007ffff7f4160f in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#15 0x00007ffff7eb5eca in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#14 0x00007ffff7ecf0fc in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#13 0x00007ffff7f1e366 in scm_shell () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#12 0x00007ffff7ebdf46 in scm_eval () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#11 0x00007ffff7eb7b77 in scm_primitive_eval () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#10 0x00007ffff7f4f6b5 in scm_call_n () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#9  0x00007ffff7f41676 in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#8  0x00007ffff7f4f855 in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#7  0x00007ffff7f5f527 in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+(gdb) down
+#6  0x00007ffff7dff68e in ffi_call () from /gnu/store/1lzfbbwcpyngm81v44fr34253b8is7zr-libffi-3.4.4/lib/libffi.so.8
+(gdb) down
+#5  0x00007ffff7dfec85 in ?? () from /gnu/store/1lzfbbwcpyngm81v44fr34253b8is7zr-libffi-3.4.4/lib/libffi.so.8
+(gdb) down
+#4  0x00007ffff7e00052 in ?? () from /gnu/store/1lzfbbwcpyngm81v44fr34253b8is7zr-libffi-3.4.4/lib/libffi.so.8
+(gdb) down
+#3  0x00007ffff3e2a601 in wl_display_dispatch_queue () from /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+(gdb) down
+#2  0x00007ffff3e29d68 in wl_display_read_events () from /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+(gdb) down
+#1  0x00007ffff3e2bd5f in ?? () from /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+(gdb) info #`
+Undefined info command: "#`".  Try "help info".
+(gdb) info #1
+Undefined info command: "#1".  Try "help info".
+(gdb) info $`
+Undefined info command: "$`".  Try "help info".
+(gdb) info $1
+Undefined info command: "$1".  Try "help info".
+(gdb) $1
+Undefined command: "$1".  Try "help".
+(gdb) r
+The program being debugged has been started already.
+Start it from the beginning? (y or n) n
+Program not restarted.
+(gdb) frame
+#1  0x00007ffff3e2bd5f in ?? () from /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+(gdb) info source
+No current source file.
+(gdb) dir /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/
+bin/     etc/     include/ lib/     share/
+(gdb) dir /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/
+bin/     etc/     include/ lib/     share/
+(gdb) dir /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/include/wayland-
+wayland-client-core.h      wayland-client.h           wayland-egl-backend.h      wayland-egl.h              wayland-server-protocol.h  wayland-util.h
+wayland-client-protocol.h  wayland-cursor.h           wayland-egl-core.h         wayland-server-core.h      wayland-server.h           wayland-version.h
+(gdb) dir /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/include/wayland-
+wayland-client-core.h      wayland-client.h           wayland-egl-backend.h      wayland-egl.h              wayland-server-protocol.h  wayland-util.h
+wayland-client-protocol.h  wayland-cursor.h           wayland-egl-core.h         wayland-server-core.h      wayland-server.h           wayland-version.h
+(gdb) dir /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/
+bin/     etc/     include/ lib/     share/
+(gdb) dir /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/share/
+aclocal/ man/     wayland/
+(gdb) dir /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/share/wayland/wayland
+wayland-scanner.mk  wayland.dtd         wayland.xml
+(gdb) dir /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/share/wayland/wayland
+wayland-scanner.mk  wayland.dtd         wayland.xml
+(gdb) dir /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/
+bin/     etc/     include/ lib/     share/
+(gdb) dir /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/bin/wayland-scanner
+#README.org#       .gdb_history       .nrepl-port        Makefile.am        channels-lock.scm  guix/              nrepl.scm          wayland-protocols/
+.dir-locals.el     .git/              Makefile           README.org         configure.ac       guix.scm           src/               wayland.go
+(gdb) dir /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/
+bin/     etc/     include/ lib/     share/
+(gdb) dir /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/share/
+aclocal/ man/     wayland/
+(gdb) dir /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/include/wayland-
+wayland-client-core.h      wayland-client.h           wayland-egl-backend.h      wayland-egl.h              wayland-server-protocol.h  wayland-util.h
+wayland-client-protocol.h  wayland-cursor.h           wayland-egl-core.h         wayland-server-core.h      wayland-server.h           wayland-version.h
+(gdb) dir                        /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/include/
+Source directories searched: /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/include:/gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib:$cdir:$cwd
+(gdb) info sharedlibrary
+From                To                  Syms Read   Shared Object Library
+0x00007ffff7fc9050  0x00007ffff7fee391  Yes (*)     /gnu/store/ln6hxqjvz6m9gdd9s97pivlqck7hzs99-glibc-2.35/lib/ld-linux-x86-64.so.2
+0x00007ffff7ea9f40  0x00007ffff7f6290e  Yes (*)     /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+0x00007ffff7e0e960  0x00007ffff7e2960c  Yes (*)     /gnu/store/ypj54hl8dign6rqwkcngqy37qz4zvl5j-libgc-8.2.2/lib/libgc.so.1
+0x00007ffff7dfa000  0x00007ffff7e0275b  Yes (*)     /gnu/store/1lzfbbwcpyngm81v44fr34253b8is7zr-libffi-3.4.4/lib/libffi.so.8
+0x00007ffff7c5dfe0  0x00007ffff7c9153e  Yes (*)     /gnu/store/dsw05lhh6i2mvshx5x2jnn4vlb1llq6c-libunistring-1.0/lib/libunistring.so.2
+0x00007ffff7c0f1b0  0x00007ffff7c14341  Yes (*)     /gnu/store/ln6hxqjvz6m9gdd9s97pivlqck7hzs99-glibc-2.35/lib/libcrypt.so.1
+0x00007ffff7b3f1f0  0x00007ffff7baec01  Yes (*)     /gnu/store/ln6hxqjvz6m9gdd9s97pivlqck7hzs99-glibc-2.35/lib/libm.so.6
+0x00007ffff7b1a310  0x00007ffff7b2b635  Yes (*)     /gnu/store/ixwl0vnvm9zrrg89nxh62llh3li701dw-gcc-11.3.0-lib/lib/libgcc_s.so.1
+0x00007ffff7943380  0x00007ffff7aa855d  Yes (*)     /gnu/store/ln6hxqjvz6m9gdd9s97pivlqck7hzs99-glibc-2.35/lib/libc.so.6
+0x00007ffff7009190  0x00007ffff70098f0  Yes (*)     /gnu/store/avj3wzyxjjln2a867l5vrkphki5ja572-guile-wayland-0.0.2/lib/libguile-wayland.so
+0x00007ffff3e3c690  0x00007ffff3e43712  Yes (*)     /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-server.so.0
+0x00007ffff3e284d0  0x00007ffff3e2d6d2  Yes (*)     /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+0x00007ffff5c041e0  0x00007ffff5c0493f  Yes (*)     /gnu/store/m668gwndvys0hp76l9qpjfdxqm0vnz26-guile-fibers-1.3.1/lib/guile/3.0/extensions/fibers-epoll.so
+(*): Shared library is missing debugging information.
+(gdb) frame
+#1  0x00007ffff3e2bd5f in ?? () from /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+(gdb)   bt
+#0  0x00007ffff3e2b4b5 in ?? () from /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+#1  0x00007ffff3e2bd5f in ?? () from /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+#2  0x00007ffff3e29d68 in wl_display_read_events () from /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+#3  0x00007ffff3e2a601 in wl_display_dispatch_queue () from /gnu/store/7vs22p1alhs721lfv3v22h09md6gsxb8-wayland-1.22.0/lib/libwayland-client.so
+#4  0x00007ffff7e00052 in ?? () from /gnu/store/1lzfbbwcpyngm81v44fr34253b8is7zr-libffi-3.4.4/lib/libffi.so.8
+#5  0x00007ffff7dfec85 in ?? () from /gnu/store/1lzfbbwcpyngm81v44fr34253b8is7zr-libffi-3.4.4/lib/libffi.so.8
+#6  0x00007ffff7dff68e in ffi_call () from /gnu/store/1lzfbbwcpyngm81v44fr34253b8is7zr-libffi-3.4.4/lib/libffi.so.8
+#7  0x00007ffff7f5f527 in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#8  0x00007ffff7f4f855 in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#9  0x00007ffff7f41676 in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#10 0x00007ffff7f4f6b5 in scm_call_n () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#11 0x00007ffff7eb7b77 in scm_primitive_eval () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#12 0x00007ffff7ebdf46 in scm_eval () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#13 0x00007ffff7f1e366 in scm_shell () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#14 0x00007ffff7ecf0fc in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#15 0x00007ffff7eb5eca in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#16 0x00007ffff7f4160f in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#17 0x00007ffff7f4f6b5 in scm_call_n () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#18 0x00007ffff7eb767a in scm_call_2 () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#19 0x00007ffff7f60762 in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#20 0x00007ffff7f3bdcf in scm_c_catch () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#21 0x00007ffff7eb85f6 in scm_c_with_continuation_barrier () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#22 0x00007ffff7f3afe9 in ?? () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#23 0x00007ffff7e1c7fa in GC_call_with_stack_base () from /gnu/store/ypj54hl8dign6rqwkcngqy37qz4zvl5j-libgc-8.2.2/lib/libgc.so.1
+#24 0x00007ffff7f35398 in scm_with_guile () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#25 0x00007ffff7ed8175 in scm_boot_guile () from /gnu/store/pm4swxzzcz77li6xgsf9xl2rskk4228r-guile-next-3.0.9-0.3b76a30/lib/libguile-3.0.so.1
+#26 0x00000000004010f7 in ?? ()
+#27 0x00007ffff79441f7 in __libc_start_call_main () from /gnu/store/ln6hxqjvz6m9gdd9s97pivlqck7hzs99-glibc-2.35/lib/libc.so.6
+#28 0x00007ffff79442ac in __libc_start_main_impl () from /gnu/store/ln6hxqjvz6m9gdd9s97pivlqck7hzs99-glibc-2.35/lib/libc.so.6
+#29 0x0000000000401171 in ?? ()
+(gdb)   info registers
+rax            0x0                 0
+rbx            0x47cb70            4705136
+rcx            0x0                 0
+rdx            0x7fffffffae04      140737488334340
+rsi            0x14                20
+rdi            0x0                 0
+rbp            0x7fffffffaea0      0x7fffffffaea0
+rsp            0x7fffffffadb0      0x7fffffffadb0
+r8             0x480ea0            4722336
+r9             0x7fffffffae04      140737488334340
+r10            0x480ea0            4722336
+r11            0x15                21
+r12            0x0                 0
+r13            0x480ea0            4722336
+r14            0xff000000          4278190080
+r15            0x484b80            4737920
+rip            0x7ffff3e2bd5f      0x7ffff3e2bd5f
+eflags         0x10202             [ IF RF ]
+cs             0x33                51
+ss             0x2b                43
+ds             0x0                 0
+es             0x0                 0
+fs             0x0                 0
+gs             0x0                 0
+fs_base        0x7ffff791a380      140737346904960
+gs_base        0x0                 0
+#+end_src
+
+Notmuch, huh. I don't know what to do at this point and if there is a way to get more detailed GDB trace somehow with guile.
+
+Seems like there won't be toplevel info in the very first release.
 ** TODO Get "file system context" (see definitions)
 ** TODO Parse xkb keymap format [low priority]
 Having a keypress uid I can translate it to any character with any keyboard mapping basically.
