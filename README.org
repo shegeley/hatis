@@ -853,6 +853,79 @@ gs_base        0x0                 0
 Notmuch, huh. I don't know what to do at this point and if there is a way to get more detailed GDB trace somehow with guile.
 
 Seems like there won't be toplevel info in the very first release.
+
+Also tried launching sway with WAYLAND_DEBUG=1. That's all I could get. Not very helpfull.
+#+begin_src
+<shegeley@prime:~/Projects/hatis>
+zsh/3 3526  (git)-[dev]-% make nrepl
+guix shell guile-next -e "(begin (use-modules (guix transformations) (gnu packages guile-xyz)) ((options->transformation '((with-commit . \"guile-ares-rs=959fcb762ca95801072f81d4bd91b7436763f1c6\"))) guile-ares-rs))"  -f guix/packages/wlroots.scm -f guix/packages/guile-wayland.scm -f guix/packages/wayland-protocols.scm -L guix --no-substitutes --rebuild-cache -- guile -L ./src -e "((@ (ares server) run-nrepl-server) #:port 7888)"
+updating checkout of 'https://git.sr.ht/~abcdw/guile-ares-rs'...
+retrieved commit 959fcb762ca95801072f81d4bd91b7436763f1c6
+nREPL server started on port 7888 on host localhost - nrepl://localhost:7888
+;;; #():1:0: warning: possibly unbound variable `M-x'
+WARNING: (srfi srfi-126): imported module (rnrs hashtables) overrides core binding `symbol-hash'
+[4182175.424]  -> wl_display@1.get_registry(new id wl_registry@2)
+[4182175.655]  -> wl_display@1.sync(new id wl_callback@3)
+[4182175.848]  -> wl_display@1.sync(new id wl_callback@4)
+[4182176.909] wl_display@1.delete_id(3)
+[4182176.936] wl_display@1.delete_id(4)
+[4182176.946] wl_registry@2.global(1, "wl_shm", 1)
+[4182177.442]  -> wl_registry@2.bind(1, "wl_shm", 1, new id [unknown]@5)
+[4182178.167] wl_registry@2.global(2, "wl_drm", 2)
+[4182178.405] wl_registry@2.global(3, "zwp_linux_dmabuf_v1", 4)
+[4182178.539] wl_registry@2.global(4, "wl_compositor", 6)
+[4182178.667]  -> wl_registry@2.bind(4, "wl_compositor", 6, new id [unknown]@6)
+[4182178.880] wl_registry@2.global(5, "wl_subcompositor", 1)
+[4182179.168]  -> wl_registry@2.bind(5, "wl_subcompositor", 1, new id [unknown]@7)
+[4182179.362] wl_registry@2.global(6, "wl_data_device_manager", 3)
+[4182179.517]  -> wl_registry@2.bind(6, "wl_data_device_manager", 3, new id [unknown]@8)
+[4182179.735] wl_registry@2.global(7, "zwlr_gamma_control_manager_v1", 1)
+[4182179.919] wl_registry@2.global(8, "zxdg_output_manager_v1", 3)
+[4182180.120] wl_registry@2.global(9, "ext_idle_notifier_v1", 1)
+[4182180.298] wl_registry@2.global(10, "zwp_idle_inhibit_manager_v1", 1)
+[4182180.478] wl_registry@2.global(11, "zwlr_layer_shell_v1", 4)
+[4182180.708] wl_registry@2.global(12, "xdg_wm_base", 2)
+[4182180.869] wl_registry@2.global(13, "zwp_tablet_manager_v2", 1)
+[4182181.039] wl_registry@2.global(14, "org_kde_kwin_server_decoration_manager", 1)
+[4182181.185] wl_registry@2.global(15, "zxdg_decoration_manager_v1", 1)
+[4182181.309] wl_registry@2.global(16, "zwp_relative_pointer_manager_v1", 1)
+[4182181.461] wl_registry@2.global(17, "zwp_pointer_constraints_v1", 1)
+[4182181.595] wl_registry@2.global(18, "wp_presentation", 1)
+[4182187.274] wl_registry@2.global(19, "zwlr_output_manager_v1", 4)
+[4182187.521] wl_registry@2.global(20, "zwlr_output_power_manager_v1", 1)
+[4182187.691] wl_registry@2.global(21, "zwp_input_method_manager_v2", 1)
+[4182187.921]  -> wl_registry@2.bind(21, "zwp_input_method_manager_v2", 1, new id [unknown]@9)
+[4182188.193] wl_registry@2.global(22, "zwp_text_input_manager_v3", 1)
+[4182188.472] wl_registry@2.global(23, "zwlr_foreign_toplevel_manager_v1", 3)
+[4182188.735]  -> wl_registry@2.bind(23, "zwlr_foreign_toplevel_manager_v1", 3, new id [unknown]@10)
+[4182189.409] wl_registry@2.global(24, "ext_session_lock_manager_v1", 1)
+[4182189.512] wl_registry@2.global(25, "zwlr_export_dmabuf_manager_v1", 1)
+[4182189.594] wl_registry@2.global(26, "zwlr_screencopy_manager_v1", 3)
+[4182189.793] wl_registry@2.global(27, "zwlr_data_control_manager_v1", 2)
+[4182189.964] wl_registry@2.global(28, "wp_security_context_manager_v1", 1)
+[4182190.085] wl_registry@2.global(29, "wp_viewporter", 1)
+[4182190.245] wl_registry@2.global(30, "wp_single_pixel_buffer_manager_v1", 1)
+[4182190.411] wl_registry@2.global(31, "wp_content_type_manager_v1", 1)
+[4182190.520] wl_registry@2.global(32, "wp_fractional_scale_manager_v1", 1)
+[4182190.653] wl_registry@2.global(33, "zxdg_exporter_v1", 1)
+[4182190.749] wl_registry@2.global(34, "zxdg_importer_v1", 1)
+[4182190.895] wl_registry@2.global(35, "zxdg_exporter_v2", 1)
+[4182191.153] wl_registry@2.global(36, "zxdg_importer_v2", 1)
+[4182191.210] wl_registry@2.global(37, "xdg_activation_v1", 1)
+[4182191.275] wl_registry@2.global(38, "wp_cursor_shape_manager_v1", 1)
+[4182191.322] wl_registry@2.global(39, "zwp_virtual_keyboard_manager_v1", 1)
+[4182191.376] wl_registry@2.global(40, "zwlr_virtual_pointer_manager_v1", 2)
+[4182191.421] wl_registry@2.global(41, "zwlr_input_inhibit_manager_v1", 1)
+[4182191.573] wl_registry@2.global(42, "zwp_keyboard_shortcuts_inhibit_manager_v1", 1)
+[4182191.632] wl_registry@2.global(43, "zwp_pointer_gestures_v1", 3)
+[4182191.684] wl_registry@2.global(44, "wl_seat", 8)
+[4182191.762]  -> wl_registry@2.bind(44, "wl_seat", 8, new id [unknown]@11)
+[4182192.252] wl_registry@2.global(46, "zwp_primary_selection_device_manager_v1", 1)
+[4182192.379] wl_registry@2.global(47, "wl_output", 4)
+[4182192.506]  -> wl_registry@2.bind(47, "wl_output", 4, new id [unknown]@12)
+[4182192.918] wl_callback@4.done(23)
+make: *** [Makefile:20: nrepl] Error 139
+#+end_src
 ** TODO Get "file system context" (see definitions)
 ** TODO Parse xkb keymap format [low priority]
 Having a keypress uid I can translate it to any character with any keyboard mapping basically.
