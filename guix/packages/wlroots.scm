@@ -1,4 +1,4 @@
-(define-module (packages wlroots)
+ (define-module (packages wlroots)
   #:use-module (guix packages)
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (guix download)
@@ -9,6 +9,7 @@
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system meson)
 
+  #:use-module (gnu packages wm)
   #:use-module (gnu packages pciutils)
   #:use-module (gnu packages autotools)
   #:use-module (gnu packages linux)
@@ -18,7 +19,9 @@
   #:use-module (gnu packages admin)
   #:use-module (gnu packages xorg)
   #:use-module (gnu packages pkg-config)
-  #:use-module (gnu packages texinfo))
+  #:use-module (gnu packages texinfo)
+
+  #:use-module (guix transformations))
 
 (define expose-protocols
  #~(lambda* (#:key inputs outputs #:allow-other-keys)
@@ -28,75 +31,29 @@
            (xml-copy (lambda (x y) (if (xml? x) (copy-file x y) #f)))]
      (mkdir-p dir)
      (copy-recursively "protocol" target-dir #:copy-file xml-copy)
-     (setenv "GUILE_WAYLAND_PROTOCOL_PATH"
-      (string-append target-dir
-       ":" (or "" (getenv "GUILE_WAYLAND_PROTOCOL_PATH"))))
+     (setenv "GUILE_WAYLAND_PROTOCOL_PATH" (string-append target-dir ":" (or "" (getenv "GUILE_WAYLAND_PROTOCOL_PATH"))))
      #t)))
 
-(define-public wlroots
+(define-public wlroots/latest
  (package
-  (name "wlroots")
-  (version "0.16.2")
-  (source
-   (origin
-    (method git-fetch)
-    (uri (git-reference
-          (url "https://gitlab.freedesktop.org/wlroots/wlroots")
-          (commit version)))
-    (file-name (git-file-name name version))
-    (sha256
-     (base32 "1m12nv6avgnz626h3giqp6gcx44w1wq6z0jy780mx8z255ic7q15"))))
-  (build-system meson-build-system)
+  (inherit wlroots)
   (native-search-paths
    (list (search-path-specification
           (variable "GUILE_WAYLAND_PROTOCOL_PATH")
           (files (list "share/wayland-protocols")))))
   (arguments
-   (list
-    #:phases
+   (list #:phases
     #~(modify-phases %standard-phases
        (add-before 'configure 'hardcode-paths
         (lambda* (#:key inputs #:allow-other-keys)
          (substitute* "xwayland/server.c"
-          (("Xwayland")
-           (string-append
-            (assoc-ref inputs "xorg-server-xwayland")
-            "/bin/Xwayland")))
-         #t))
+          (("Xwayland") (string-append (assoc-ref inputs "xorg-server-xwayland") "/bin/Xwayland"))) #t))
        (add-before 'configure 'fix-meson-file
         (lambda* (#:key native-inputs inputs #:allow-other-keys)
          (substitute* "backend/drm/meson.build"
           (("/usr/share/hwdata/pnp.ids")
            (string-append (assoc-ref (or native-inputs inputs) "hwdata")
-            "/share/hwdata/pnp.ids")))
-         #t))
-       (add-before 'configure 'expose-protocols #$expose-protocols))))
-  (propagated-inputs
-   (list ;; As required by wlroots.pc.
-    eudev
-    libinput-minimal
-    libxkbcommon
-    mesa
-    pixman
-    libseat
-    wayland
-    wayland-protocols
-    xcb-util-errors
-    xcb-util-wm
-    xorg-server-xwayland))
-  (native-inputs
-   (cons*
-    `(,hwdata "pnp")
-    pkg-config
-    wayland
-    (if (%current-target-system)
-     (list pkg-config-for-build)
-     '())))
-  (home-page "https://gitlab.freedesktop.org/wlroots/wlroots/")
-  (synopsis "Pluggable, composable, unopinionated modules for building a
-Wayland compositor")
-  (description "wlroots is a set of pluggable, composable, unopinionated
-modules for building a Wayland compositor.")
-  (license license:expat)))
+            "/share/hwdata/pnp.ids"))) #t))
+       (add-before 'configure 'expose-protocols #$expose-protocols))))))
 
-wlroots
+wlroots/latest
