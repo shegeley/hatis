@@ -19,8 +19,7 @@
  #:use-module (gnu packages pkg-config)
  #:use-module (gnu packages texinfo)
 
- #:use-module (packages bytestructure-class)
- #:use-module (packages wlroots))
+ #:use-module (packages bytestructure-class))
 
 (define url "https://github.com/guile-wayland/guile-wayland")
 (define commit "cf96a8a5d710addb330021c1d3b21738447b2efb")
@@ -63,8 +62,6 @@
     guile-3.0-latest))
   (inputs
    (list
-    guile-fibers ;; personal
-    guix
     guile-3.0-latest
     wayland
     wayland-protocols))
