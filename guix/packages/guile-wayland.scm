@@ -21,9 +21,9 @@
 
  #:use-module (packages bytestructure-class))
 
-(define url "https://github.com/guile-wayland/guile-wayland")
-(define commit "cf96a8a5d710addb330021c1d3b21738447b2efb")
-(define hash "1p07qs7pkkbhqa6568pfr44m1q1f783vh0a7nixhsmfpnv2fg8qr")
+(define url    "https://github.com/guile-wayland/guile-wayland")
+(define commit "b42dc8350b91a967c5ae672c624a271f84c46dfd")
+(define hash   "18fn4g2zzq4v2nv6qjl4g18ldzawkly94mznv4wgjvfaf3n0ybfq")
 
 (define-public guile-wayland
  (package
