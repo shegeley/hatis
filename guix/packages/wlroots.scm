@@ -9,7 +9,7 @@
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system meson)
 
-  #:use-module (gnu packages wm)
+  #:use-module ((gnu packages wm) #:select ((wlroots . wlroots-base)))
   #:use-module (gnu packages pciutils)
   #:use-module (gnu packages autotools)
   #:use-module (gnu packages linux)
@@ -34,9 +34,9 @@
      (setenv "GUILE_WAYLAND_PROTOCOL_PATH" (string-append target-dir ":" (or "" (getenv "GUILE_WAYLAND_PROTOCOL_PATH"))))
      #t)))
 
-(define-public wlroots/latest
+(define-public wlroots
  (package
-  (inherit wlroots)
+  (inherit wlroots-base)
   (native-search-paths
    (list (search-path-specification
           (variable "GUILE_WAYLAND_PROTOCOL_PATH")
@@ -56,4 +56,4 @@
             "/share/hwdata/pnp.ids"))) #t))
        (add-before 'configure 'expose-protocols #$expose-protocols))))))
 
-wlroots/latest
+wlroots
