@@ -372,7 +372,7 @@ See:
 1. https://emersion.fr/blog/2020/wayland-clipboard-drag-and-drop/
 2. https://wayland.app/protocols/primary-selection-unstable-v1
 3. https://wayland.app/protocols/wlr-data-control-unstable-v1
-** TODO Get "window manager context" (see definitions) (~app_id~ + ~pid~ & etc) [easy, high priority] [[https://wayland.app/protocols/wlr-foreign-toplevel-management-unstable-v1#zwlr_foreign_toplevel_handle_v1:event:app_id][zwlr_foreign_toplevel_handle_v1:event:app_id]]
+** TODO Get "window manager context" (see definitions) (~app_id~ + ~pid~ & etc) [high priority] [swaymsg or [[https://wayland.app/protocols/wlr-foreign-toplevel-management-unstable-v1#zwlr_foreign_toplevel_handle_v1:event:app_id][zwlr_foreign_toplevel_handle_v1:event:app_id]] (hard)]
 Met a very strange problem with zwlr_foreign_toplevel_v1 protocol.
 
 When require and using it in the ~(hatis wayland)~ with this code:
@@ -926,6 +926,18 @@ WARNING: (srfi srfi-126): imported module (rnrs hashtables) overrides core bindi
 [4182192.918] wl_callback@4.done(23)
 make: *** [Makefile:20: nrepl] Error 139
 #+end_src
+---
+On <2024-08-31 Сб> Z572 [[https://github.com/guile-wayland/guile-wayland/issues/13#issuecomment-2322868090][confirmed the bug]] and wrote smallest possible reprodusible example.
+
+Then I thought the problem might be in versioning tried to build the latest wlroots and the latest sway with it. No help.
+
+Tried once more to do some dirty tricks with minimal reprodusible: wrapping and unwrapping, minor changes in guile-wayland.
+
+Then looked at ~guile-wlroots~. Found nothing usefull cause it's for creating wayland-servers.
+---
+At this point (<2024-09-03 Вт>) I have to drop idea of using this protocol untill it's fixed by someone else. I just can't waste more time on it.
+
+Will use ~swaymsg~ with ~system*~ and ~(ice-9 popen)~. It can show the "wayland tree" (scene graph or how does it called?) but also to change focus on request.
 ** TODO Get "file system context" (see definitions)
 ** TODO Parse xkb keymap format [low priority]
 Having a keypress uid I can translate it to any character with any keyboard mapping basically.
