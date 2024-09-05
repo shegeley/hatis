@@ -10,7 +10,7 @@
   #:use-module (srfi srfi-125)
 
   #:export (read-string-from-fd
-            _->- live-load
+            _->- -->_ live-load
             even-list->alist
             alist->even-list
             hash-table->even-list
@@ -20,8 +20,9 @@
   (call-with-port (fdopen fd "rb")
     (compose utf8->string get-bytevector-all)))
 
-(define (_->- str)
-   (string-replace-substring str "_" "-"))
+(define (_->- str) (string-replace-substring str "_" "-"))
+
+(define (-->_ str) (string-replace-substring str "-" "_"))
 
 (define* (live-load x #:key (module (current-module)))
   (module-ref
