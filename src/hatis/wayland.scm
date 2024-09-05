@@ -5,8 +5,6 @@
   #:use-module (wayland client proxy)
 
   #:use-module (wayland client protocol input-method)
-  ;; TODO: figure out why broken
-  ;; #:use-module (wayland client protocol foreign-toplevel-management)
 
   #:use-module (hatis wayland seat)
   #:use-module (hatis wayland keyboard)
