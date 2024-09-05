@@ -272,6 +272,24 @@ Run the project with: ~make sway+nrepl~ or ~~make sway+tm/nrepl~~ to launch it w
  ("type" . "root")
  ("id" . 1))
 #+end_src
+How do I get all "windows"? Top level "type" is "root". "output" type is nested in it. And then comes the "workspace" and THEN "con" which is a "console" in the exact given example.
+
+Or it's also possible to recursively get all nodes untill there is not nested nodes on the one that's left...
+
+It's also possible to use a jq (fast commandline json processor).
+
+I need the results to strictly correspond to <zlwr-foreign-toplevel...> protocol abilities: getting title (change) and app-id (change) and forcing the focus (activating? ~<request name="activate">~?)
+---
+For now I did it with jq system* calls and pipes. It's temporary anyway untill guile-wayland's toplevel-management is fixed.
+
+Draft from "better attempt" (parsing swaymsg-tree with guile-wayland)
+#+begin_src scheme
+(define (get-focused x)
+ (let* [(p (open-input-pipe swaymsg:get-tree-command*))
+        (json-string (get-string-all p))]
+  (close-port p)
+  (json-string->scm json-string)))
+#+end_src
 ** On state management
 As an ex-clojureist I see state as an atom contaning hash-map with hooks (add/remove-watch). That's how it should be managed in this project.
 
