@@ -73,6 +73,9 @@ Setup is under construction. It will be enhanced to reach true guix-reprodusabil
 - OS: Guix System
 Run the project with: ~make sway+nrepl~ or ~~make sway+tm/nrepl~~ to launch it with "windowed" sway or ~make nrepl~ to launch in on your's current wayland compositor.
 * Notes
+** guile-nyacc C bindings autogenerator
+@krevedkokun gave a hint on autogenerating C bindings with guile-scheme with nyacc. [[https://git.sr.ht/~krevedkokun/guile-wlroots/tree/master/item/ffi/wlroots.ffi][See]].
+It it possible to entirely replace guile-wayland and forget about handwritten bingings mess?
 ** ~(swaymsg -t get_tree) -> scm~ dump example
 #+begin_src scheme
 (("sticky" . #f)
