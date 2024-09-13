@@ -28,6 +28,12 @@
 
 ;; (define wayland-events-channel (make-channel))
 
+;; begin: shortenings
+(define get-im zwp-input-method-manager-v2-get-input-method)
+(define <i-manager> <zwp-input-method-manager-v2>)
+(define <keyboard-grab> <zwp-input-method-keyboard-grab-v2>)
+;; end shortenings
+
 (define %display         #f)
 (define %registry        #f)
 (define %log            '())
@@ -36,15 +42,14 @@
 
 ;; log
 (define* (get-events #:optional (interface #f))
-  (filter (lambda (e)
-            (if interface
-                (eq? (listener interface) (first e))
-                #t)) %log))
+ (filter
+  (lambda (e) (if interface (eq? (listener interface) (first e)) #t))
+  %log))
 
 (define channel-event-handler
  (lambda args ;; (event-listener-class event-name event-args)
-  ;; (put-message wayland-events-channel args)
   (set! %log (cons args %log))
+  ;; (put-message wayland-events-channel args)
   #t))
 
 (define* (make-listener* class #:optional (args '()))
@@ -62,6 +67,8 @@
 (define (handle-interface wayland-interface)
  (try-add-listener* wayland-interface)
  (catch-interface! wayland-interface))
+
+(define hi handle-interface)
 
 ;; %interfaces
 (define (get-interface class)
@@ -106,22 +113,24 @@
   (add-listener %registry registry-listener)
   (roundtrip))
 
-(define (start!)
+(define (init-input-method)
+ (hi (get-im (i <i-manager>) (i <wl-seat>))))
+
+(define (run!)
   (connect)
   (get-registry)
-  ;; (get-input-method)
+  (init-input-method)
   (spin))
 
 ;; control flow
-
 (define thread #f)
 
-(define (run!)
+(define (start!)
   (if thread
       (restart!)
       (set! thread (call-with-new-thread start!))))
 
-(define (exit!)
+(define (stop!)
  (when (and thread (not (thread-exited? thread)))
   (cancel-thread         thread)
   (set!         thread   #f)
@@ -130,35 +139,7 @@
   (wl-display-flush      %display)
   (wl-display-disconnect %display)))
 
-(define (restart!) (exit!) (run!))
+(define (restart!) (stop!) (start!))
 
-;; (run!)
 
 ;; (get-events)
-
-;; %raw-interfaces
-
-;; %interfaces
-
-;; (roundtrip)
-
-;; (use-modules (system vm trace))
-
-;; (roundtrip)
-
-#| ;; STASH
-(define (get-input-method)
-(unless (i <zwp-input-method-manager-v2>)
-(error (format #f "Can't access input-manager!")))
-
-
-(handle-interface
-(zwp-input-method-manager-v2-get-input-method
-(i <zwp-input-method-manager-v2>)
-(i <wl-seat>))))
-
-(define (get-keyboard)
-(let* [(seat     (i <wl-seat>))
-(keyboard (wl-seat-get-keyboard seat))]
-(handle-interface keyboard)))
-|#
