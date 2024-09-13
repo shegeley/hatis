@@ -1,11 +1,10 @@
 # base stubs
 guix-time-machine = guix time-machine -C ./channels-lock.scm
-guile-ares-latest = "(begin (use-modules (guix transformations) (gnu packages guile-xyz)) ((options->transformation '((with-commit . \"guile-ares-rs=959fcb762ca95801072f81d4bd91b7436763f1c6\"))) guile-ares-rs))" # zero-value-conts handling introduced in this commit
 
 shell-default-args = \
 	jq \
 	guile-next \
-	-e ${guile-ares-latest} \
+	guile-ares-rs \
 	-f guix/packages/wlroots.scm \
 	-f guix/packages/guile-wayland.scm \
 	-f guix/packages/wayland-protocols.scm \
