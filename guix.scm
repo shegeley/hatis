@@ -23,7 +23,11 @@
     (home-page "https://github.com/shegeley/hatis")
     (description "This is a very early-stage project (alpha-version) + a set of experiments of building HAckable Text Input System (HATIS)")
     (synopsis "")
-    (arguments (list #:source-directory "src"))
+    (arguments (list
+                 #:scheme-file-regexp #~(begin
+                                        (use-modules (ice-9 regex))
+                                        (lambda (file stat) (string-match "/hatis/.*\\.scm$" file)))
+                 #:source-directory "src"))
     (license license:gpl3+)
     (source (local-file %source-dir "text-input-system-checkout" #:recursive? #t))
     (build-system guile-build-system)
