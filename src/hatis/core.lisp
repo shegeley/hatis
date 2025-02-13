@@ -12,6 +12,7 @@
   :access
   :arrows
   :cl)
+ (:import-from :wayflan-client :%proxy-table)
  (:local-nicknames
   (:a :alexandria)
   (:t :trivia)))
@@ -22,8 +23,8 @@
 
 (defun get-interface (type)
   "keep in mind that there can be multiple interfaces of the same time in display's proxy-table. find-if only returns first"
-  (->>
-   'xyz.shunter.wayflan.client::%proxy-table
+ (->>
+   '%proxy-table
    (slot-value *display*)
    (a:hash-table-values)
    (find-if (lambda (x) (eq type (type-of x))))))
