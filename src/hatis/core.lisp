@@ -126,7 +126,7 @@
 
 (defmethod process-interface
  (interface)
- "This method is called BEFORE all the interfaces are 'collected' into *state* hashtable. So you can't rely on it's being filled on this method's first call"
+ "This method is called BEFORE all the interfaces are 'collected' into %proxy-table. So you can't rely on it's being filled on this method's first call"
  (progn
   (install-event-handlers! interface)
   (list 'processed interface)))
