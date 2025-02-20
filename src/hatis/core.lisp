@@ -21,6 +21,8 @@
 
 (defparameter *channel* (make-instance 'channel))
 
+(defparameter *display* nil)
+
 (defun get-interface (type)
   "keep in mind that there can be multiple interfaces of the same time in display's proxy-table. find-if only returns first"
  (->>
@@ -33,8 +35,6 @@
  `((Esc . 1)))
 
 (defun assoc-ref (alist k) (cdr (assoc k alist)))
-
-(defparameter *display* nil)
 
 (defvar registry-global-interfaces-bind-list
  ;; "List of 'initial' (:= coming from the registry) interfaces that's needed by hatis"
