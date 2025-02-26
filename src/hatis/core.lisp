@@ -7,12 +7,16 @@
   :xyz.hatis.protocols.foreign-toplevel-management
 
   :xyz.hatis.utils
+  :xyz.hatis.classes
 
   :chanl
   :access
   :arrows
   :cl)
  (:import-from :wayflan-client :%proxy-table)
+ (:import-from :xyz.hatis.classes :Hatis)
+ (:import-from :xyz.hatis.classes :%display)
+ (:import-from :xyz.hatis.classes :%channel)
  (:local-nicknames
   (:a :alexandria)
   (:t :trivia)))
@@ -31,37 +35,6 @@
  `(wl-seat
    zwp-input-method-manager-v2
    zwlr-foreign-toplevel-manager-v1))
-
-(defclass Hatis ()
- ((display :type wl-display
-   :initarg :display
-   :accessor %display)
-  (channel :type channel
-   :initarg :channel
-   :accessor %channel)))
-
-(defmethod get-interface
- ((display wl-display) type)
- (->>
-  '%proxy-table
-  (slot-value display) (a:hash-table-values)
-  (find-if (lambda (x) (eq type (type-of x))))))
-
-(defmethod get-interface
- ((H Hatis) type) (get-interface (%display H) type))
-
-(defmethod get-input-method ((display wl-display))
- (let* ((gim  #'zwp-input-method-manager-v2.get-input-method)
-        (imm  (get-interface display 'zwp-input-method-manager-v2))
-        (im   (get-interface display 'zwp-input-method-v2))
-        (seat (get-interface display 'wl-seat)))
-  (cond
-   (im im)
-   ((and imm seat) (funcall gim imm seat))
-   (t (signal 'cannot-get-input-method)))))
-
-(defmethod get-input-method ((H Hatis))
- (with-slots (display) H (get-input-method display)))
 
 (defun bind (registry id interface version)
  (wl-registry.bind registry id
@@ -126,7 +99,7 @@
 (defun handle-interface-event*
  (H interface event)
  "Handle wayland's interface event according to the handle-interface-event method and send result to the channel"
- (with-slots (channel) H
+ (with-slots ((channel xyz.hatis.classes::channel)) H
   (destructuring-bind (event-name &rest event-args) event
    (let ((r (apply (handle-interface-event H interface event-name)
              event-args)))
@@ -142,16 +115,9 @@
   (wl-proxy-hooks interface)))
 
 (defmethod process-interface
- (H (d wl-display))
- (progn
-  (process-interface H (wl-display.get-registry d))
-  ;; double roundrtip needed to catch all the interfaces + toplevel manager&handle
-  (wl-display-roundtrip d) (wl-display-roundtrip d)))
-
-(defmethod process-interface
  (H interface)
  "This method is called BEFORE all the interfaces are 'collected' into %proxy-table. So you can't rely on it's being filled on this method's first call"
- (with-slots (channel) H
+ (with-slots ((channel xyz.hatis.classes::channel)) H
   (send channel (list 'processing interface))
   (install-event-handlers! H interface)
   (send channel (list 'processed interface))))
@@ -163,10 +129,20 @@
                 :display display*
                 :channel (make-instance 'channel))))
    (setq app hatis)
-   (with-slots (display channel) hatis
+   (with-slots
+    ((display xyz.hatis.classes::display)
+     (channel xyz.hatis.classes::channel))
+    hatis
+
     (pexec () (loop (format t "~a~%" (recv channel))))
-    (process-interface hatis display*)
+
+    (process-interface hatis (wl-display.get-registry display))
+
+    (wl-display-roundtrip display)
+    (wl-display-roundtrip display)
+
     (process-interface hatis (get-input-method hatis))
+
     (loop
      (if (not (eql 'wl-destroyed-proxy (type-of display)))
       (wl-display-dispatch-event display)
