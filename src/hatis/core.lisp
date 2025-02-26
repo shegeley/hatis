@@ -152,10 +152,9 @@
  (H interface)
  "This method is called BEFORE all the interfaces are 'collected' into %proxy-table. So you can't rely on it's being filled on this method's first call"
  (with-slots (channel) H
-  (format t "processing: ~a ~%" interface)
   (send channel (list 'processing interface))
   (install-event-handlers! H interface)
-  (list 'processed interface)))
+  (send channel (list 'processed interface))))
 
 (defun start! ()
  (print "Starting hatis…") (terpri)
