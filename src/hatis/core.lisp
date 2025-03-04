@@ -30,6 +30,11 @@
 
 (defun assoc-ref (alist k) (cdr (assoc k alist)))
 
+;; TODO:
+;; 1. decouple `process-interface' calls from `handle-interface-event' multimethod
+;;    just send to the channel (list 'interface interface) so it will be possible to
+;;    move `handle-interface-event' to separate package/module/file
+
 (defvar registry-global-interfaces-bind-list
  ;; "List of 'initial' (:= coming from the registry) interfaces that's needed by hatis"
  `(wl-seat
