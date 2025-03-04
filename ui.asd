@@ -23,5 +23,6 @@
                         ;; nice way to access nested structs elements
                         :access)
 
- :components ((:file "hatis/utils")
+ :components ((:file "hatis/classes")
+              (:file "hatis/utils" (:depends-on "hatis/classes"))
               (:file "hatis/ui/gtk" (:depends-on "hatis/utils"))))
