@@ -24,4 +24,5 @@
    :components
    ((:file "classes")
     (:file "utils" :depends-on ("classes"))
-    (:file "core" :depends-on ("utils" "classes"))))))
+    (:file "wayland/handlers" :depends-on ("classes" "utils"))
+    (:file "core" :depends-on ("utils" "classes" "wayland/handlers"))))))
