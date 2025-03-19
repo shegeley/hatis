@@ -27,6 +27,7 @@
 (defvar registry-global-interfaces-bind-list
  ;; "List of 'initial' (:= coming from the registry) interfaces that's needed by hatis"
  `(wl-seat
+   zwlr-data-control-manager-v1
    zwp-input-method-manager-v2
    zwlr-foreign-toplevel-manager-v1))
 
@@ -37,13 +38,12 @@
 (defmethod handle-interface-event (h i e) (lambda (&rest args) args))
 
 (defmethod handle-interface-event
- ((H Hatis) (i zwlr-foreign-toplevel-manager-v1) (e (eql :toplevel)))
- (lambda (handle) handle))
+ ((H Hatis) (i zwlr-data-control-device-v1) (e t))
+ (lambda (&rest args) args))
 
 (defmethod handle-interface-event
- ((H Hatis) (i zwp-input-method-keyboard-grab-v2) (e (eql :keymap)))
- (lambda (&rest args) ;; (serial time key state)
-  (cons :keymap args)))
+ ((H Hatis) (i zwlr-foreign-toplevel-manager-v1) _)
+ (lambda (&rest args) args))
 
 (defun keyboard-grab-quit (H)
  (let* ((class 'zwp-input-method-keyboard-grab-v2)
