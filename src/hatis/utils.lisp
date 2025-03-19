@@ -5,6 +5,7 @@
 
   :xyz.hatis.classes
   :xyz.hatis.protocols.input-method
+  :xyz.hatis.protocols.data-control
 
   :cl)
  (:import-from :xyz.hatis.classes :Hatis)
@@ -15,7 +16,8 @@
  (:export
   :_->- :wrap :force-output!
   :format! :interface-string->symbol
-  :get-interface :get-input-method))
+  :get-interface :get-input-method
+  :get-data-control-device))
 
 (in-package :xyz.hatis.utils)
 
@@ -49,3 +51,12 @@
 
 (defmethod get-input-method ((H Hatis))
  (get-input-method (%display H)))
+
+(defmethod get-data-control-device ((display wl-display))
+ (let* ((seat (get-interface display 'wl-seat))
+        (ddm (get-interface display 'zwlr-data-control-manager-v1))
+        (gdd #'zwlr-data-control-manager-v1.get-data-device))
+  (funcall gdd ddm seat)))
+
+(defmethod get-data-control-device ((H Hatis))
+  (get-data-control-device (%display H)))
