@@ -64,6 +64,7 @@
     (wl-display-roundtrip display)
 
     (process-interface hatis (get-input-method hatis))
+    (process-interface hatis (get-data-control-device hatis))
 
     (loop
      (if (not (eql 'wl-destroyed-proxy (type-of display)))
