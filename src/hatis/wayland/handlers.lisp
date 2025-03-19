@@ -31,8 +31,8 @@
    zwlr-foreign-toplevel-manager-v1))
 
 (defun bind (registry id interface version)
-  (wl-registry.bind registry id
-   (interface-string->symbol interface) version))
+  (let ((s (interface-string->symbol interface)))
+    (wl-registry.bind registry id s version)))
 
 (defmethod handle-interface-event (h i e) (lambda (&rest args) args))
 
