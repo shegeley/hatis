@@ -108,7 +108,9 @@
      :blockp nil)
     (cond
      ((typep r 'wl-proxy)
-      (install-event-handlers! H r))
+      (install-event-handlers! H r)
+      (send channel (list 'wayland-interface interface r)
+            :blockp nil))
      (t
       (send channel (list 'wayland-event-result r)
        :blockp nil)))))))
