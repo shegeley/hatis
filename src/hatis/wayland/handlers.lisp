@@ -45,10 +45,19 @@
  (lambda (&rest args) ;; (serial time key state)
   (cons :keymap args)))
 
+(defun keyboard-grab-quit (H)
+ (let* ((class 'zwp-input-method-keyboard-grab-v2)
+        (imkg (get-interface H class)))
+  (zwp-input-method-keyboard-grab-v2.release imkg)))
+
+(defun escp (keycode) (= (assoc-ref key->code `Esc) keycode))
+
 (defmethod handle-interface-event
  ((H Hatis) (i zwp-input-method-keyboard-grab-v2) (e (eql :key)))
  (lambda (serial time keycode state)
-  (list :key serial time keycode state)))
+  (cond
+   ((escp keycode) (keyboard-grab-quit H))
+   (t (list serial time keycode state)))))
 
 (defmethod handle-interface-event
  ((H Hatis) (i zwp-input-method-keyboard-grab-v2) (e (eql :modifiers)))
