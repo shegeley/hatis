@@ -134,7 +134,7 @@
     (cond
      ((typep r 'wl-proxy)
       (install-event-handlers! H r)
-      (send channel (list 'wayland-interface interface r)
+      (send channel (list 'wayland-interface r)
             :blockp nil))
      (t
       (send channel (list 'wayland-event-result r)
