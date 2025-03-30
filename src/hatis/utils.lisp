@@ -16,12 +16,20 @@
  (:export
   :_->- :wrap :force-output!
   :format! :interface-string->symbol
+  :read-string
   :get-interface :get-input-method
   :get-data-control-device))
 
 (in-package :xyz.hatis.utils)
 
 (defun _->- (s) (substitute #\- #\_ s))
+
+(defun read-string (stream)
+ #| (format nil "~{~a~^, ~}" (list 1 2 3)) ==> "1, 2, 3"
+    https://gigamonkeys.com/book/a-few-format-recipes |#
+ (format nil "~{~a~^~%~}"
+  (loop for line = (read-line stream nil)
+   while line collect line)))
 
 (defun wrap (wrapper proc &rest args)
  (apply wrapper args) (apply proc args) (apply wrapper args))
