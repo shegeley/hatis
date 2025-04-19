@@ -25,6 +25,17 @@ commonlisp = ${commonlisp-shell-default-args} -- sbcl --load ${slynk-file}
 slynk:
 	guix shell ${commonlisp}
 
+lsp:
+	guix shell \
+	-L channel \
+	sbcl sbcl-alive-lsp \
+	-D -f guix.scm \
+	--rebuild-cache \
+	-- sbcl \
+	--eval "(require :asdf)" \
+	--eval "(asdf:load-system :alive-lsp)" \
+	--eval "(alive/server:start)"
+
 nrepl:
 	guix shell ${guile} -l ${nrepl-file}
 
