@@ -8,7 +8,6 @@
 
   :xyz.hatis.utils
   :xyz.hatis.classes
-
   :chanl
   :cl)
  (:import-from :wayflan-client :%proxy-table)
@@ -46,25 +45,31 @@
  (lambda (data-offer) data-offer))
 
 (defmethod handle-interface-event
- ((H Hatis) (i zwlr-data-control-offer-v1) (e (eql :offer)))
- (lambda (mime-type)
-  (let ((offer nil))
-   #| TODO:
-   Andrew Kravchuk, [24.03.2025 09:58]
-   Там же тебе дока говорит, мол, typically created with pipe syscall. Зовёшь sb-posix:pipe, оно тебе возвращает два дескриптора, это два конца пайпа. Один конец отдаёшь вейланду, во второй конец сам читаешь/пишешь. Ну и можно опционально завернуть в make-fd-stream
-   Григорий, [24.03.2025 10:01]
-   а как читать/писать (вообще мне тупо все считать нужно) из fd? не могу найти примеры. и потом его закрыть
-   Andrew Kravchuk, [24.03.2025 10:03]
-   Передай дескриптор в sb-sys:make-fd-stream и работай с ним, как с обычным лисповым стримом
-   |#
+ ((H Hatis) (i zwlr-data-control-device-v1) (e (eql :primary-selection)))
+ (lambda (data-offer) data-offer))
 
-   #| Code below works.
-      But need to figure out how to read from fd-stream + close file descriptors
-   |#
-   (multiple-value-bind (r w) (sb-posix:pipe)
-    (zwlr-data-control-offer-v1.receive i mime-type w)
-    (setq offer (sb-sys:make-fd-stream r))
-    (list 'data-offer-content offer)))))
+(defmethod handle-interface-event
+ ((H Hatis) (i zwlr-data-control-device-v1) (e (eql :selection)))
+ (lambda (data-offer) data-offer))
+
+(defmethod handle-interface-event
+ ((H Hatis) (i zwlr-data-control-device-v1) (e (eql :finished)))
+ (lambda (data-offer) data-offer))
+
+(defmethod handle-interface-event
+    ((H Hatis) (i zwlr-data-control-offer-v1) (e (eql :offer)))
+  (lambda (mime-type)
+    ;; TODO: advice from CL pro «add unwind-protect that closes input-streams»
+    ;; IDK how unwind-protect works yet
+    (multiple-value-bind (in out) (sb-posix:pipe)
+      (let ((result nil)
+            (outs   (sb-sys:make-fd-stream out :output t :buffering :none))
+            (ins    (sb-sys:make-fd-stream in  :input t  :buffering :none)))
+        (zwlr-data-control-offer-v1.receive i mime-type out)
+        (close outs)
+        (setq result (read-string ins))
+        (close ins)
+        (list 'zwlr-data-control-offer result)))))
 
 (defmethod handle-interface-event
  ((H Hatis) (i zwlr-foreign-toplevel-manager-v1) _)
@@ -105,10 +110,7 @@
 (defmethod handle-interface-event
  ((H Hatis) (i zwp-input-method-v2) (e (eql :content-type)))
   ;; EXAMPLE (CONTENT-TYPE (NONE) TERMINAL)
-  (lambda (_ type)
-   (cond
-    ((eql type :terminal)
-     "do something given it's a terminal"))))
+  (lambda (hint purpose) (list :content-type hint purpose)))
 
 (defmethod handle-interface-event
  ((H Hatis) (registry wl-registry) (e (eql :global)))
@@ -145,16 +147,3 @@
  (push
   (lambda (event) (handle-interface-event* H interface event))
   (wl-proxy-hooks interface)))
-
-(multiple-value-bind (r w) (sb-posix:pipe)
- (let ((result nil)
-       (rs (sb-sys:make-fd-stream r :input  t :buffering :none))
-       (ws (sb-sys:make-fd-stream w :output t :buffering :none)))
-  (format ws "joj kek lol sas ~% sperm o bus")
-  (close ws) ;; [!]
-  ;; NOTE: [!] read from rs won't work untill ws is closed
-  ;; NOTE: closing fd-stream, also closes the file descriptor
-  ;; no need to call sb-posix:close
-  (setq result (read-string rs))
-  (close rs)
-  result))
