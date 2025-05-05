@@ -25,4 +25,4 @@
 
  :components ((:file "hatis/classes")
               (:file "hatis/utils" (:depends-on "hatis/classes"))
-              (:file "hatis/ui/gtk" (:depends-on "hatis/utils"))))
+              (:file "hatis/ui/text-view" (:depends-on "hatis/utils"))))

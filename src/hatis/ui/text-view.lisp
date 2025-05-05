@@ -1,4 +1,4 @@
-(defpackage :xyz.hatis.ui.gtk
+(defpackage :xyz.hatis.ui.text-view
  (:use
   :xyz.hatis.utils
   :gtk
@@ -7,7 +7,7 @@
   :arrows
   :cl))
 
-(in-package #:xyz.hatis.ui.gtk)
+(in-package #:xyz.hatis.ui.text-view)
 
 (defvar C (make-instance 'channel))
 
@@ -54,6 +54,7 @@
   (unless (widget-visible-p window)
    (window-present window))))
 
+
 #|
 ;; evaling 2 forms below will insert "kek" into text-buffer. still needs investigation on how it works.
 ;; also: gtk in single threaded. chanl has it's own threadpool?
@@ -65,5 +66,4 @@
   (recv C)))
 |#
 
-(pexec ()
- (simple-text-view))
+;; (pexec () (simple-text-view))
